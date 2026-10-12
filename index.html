@@ -163,6 +163,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .agrup-contacto-name{font-size:13px;color:var(--fg);}
 .agrup-wa{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;}
 .agrup-wa:hover{background:#1ebe5d;}
+.agrup-ig{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;}
+.agrup-ig:hover{opacity:.85;}
 .agrup-sin-contacto{font-size:12px;color:var(--muted);font-style:italic;}
 /* BANNER MOG */
 .mog-banner{padding:12px 10px;border-top:1px solid var(--border);background:rgba(200,168,75,.06);}
@@ -211,7 +213,7 @@ var AGRUPACIONES=[
   {n:3,nombre:'AÑEJOS XV',provincia:'URUGUAY',contacto:'',tel:''},
   {n:4,nombre:'AVARCA',provincia:'CATAMARCA',contacto:'Juan Bellón',tel:'5493834053670'},
   {n:5,nombre:'BICHOS CANASTOS',provincia:'NEUQUÉN',contacto:'Rodrigo Bonsangue',tel:'5492995052495'},
-  {n:6,nombre:'CHAMIGOS',provincia:'CORRIENTES',contacto:'',tel:''},
+  {n:6,nombre:'CHAMIGOS',provincia:'CORRIENTES',contacto:'',tel:'',ig:'chamigosclassics2020'},
   {n:7,nombre:'CHOROI',provincia:'BAHÍA BLANCA',contacto:'Jorge Asensio',tel:'5492915028293'},
   {n:8,nombre:'CHUPAT',provincia:'PUERTO MADRYN',contacto:'Cesar Pedernera',tel:'5492804410309'},
   {n:9,nombre:'CONDORES XV',provincia:'INVITACIÓN',contacto:'Pancho',tel:'5491132095637'},
@@ -220,20 +222,20 @@ var AGRUPACIONES=[
   {n:12,nombre:'INVITACION 70',provincia:'BUENOS AIRES',contacto:'Jorge Galimberti',tel:'5491156637702'},
   {n:13,nombre:'JOVATOS',provincia:'ROSARIO',contacto:'Neri',tel:'5493416911405'},
   {n:14,nombre:'LOS PICHIS',provincia:'SGO. DEL ESTERO',contacto:'Roly Pividori / Emilio Nazar',tel:'5493855001095'},
-  {n:15,nombre:'OLD VIRGINS',provincia:'TUCUMÁN',contacto:'Bubu',tel:'543816856481'},
+  {n:15,nombre:'OLD VIRGINS',provincia:'TUCUMÁN',contacto:'Bubu',tel:'543816856481',ig:'oldivirginsok'},
   {n:16,nombre:'PLAGA',provincia:'LA PLATA',contacto:'',tel:''},
   {n:17,nombre:'RETOBAOS',provincia:'SAN RAFAEL · MZA',contacto:'',tel:''},
   {n:18,nombre:'SIRIRI',provincia:'SANTA FE',contacto:'',tel:''},
-  {n:19,nombre:'TORTUGAS',provincia:'MENDOZA',contacto:'Guille',tel:''},
+  {n:19,nombre:'TORTUGAS',provincia:'MENDOZA',contacto:'Guille',tel:'',ig:'tortugascuyo_oficial'},
   {n:20,nombre:'UVA',provincia:'CÓRDOBA',contacto:'Diego Linardi',tel:'5493512120079'},
   {n:21,nombre:'UVASAL',provincia:'SAN LUIS',contacto:'',tel:''},
-  {n:22,nombre:'VARBA',provincia:'BUENOS AIRES',contacto:'',tel:''},
-  {n:23,nombre:'VERRACOS',provincia:'RÍO NEGRO',contacto:'',tel:''},
+  {n:22,nombre:'VARBA',provincia:'BUENOS AIRES',contacto:'',tel:'',ig:'varba.rugby'},
+  {n:23,nombre:'VERRACOS',provincia:'RÍO NEGRO',contacto:'',tel:'',ig:'verracos.rugby'},
   {n:24,nombre:'VIEJOS GUANACOS',provincia:'TIERRA DEL FUEGO',contacto:'Daniel Sosa Quintana',tel:'5492964604766'},
   {n:25,nombre:'VIKINGOS',provincia:'RÍO CUARTO',contacto:'Tomás Ronza',tel:'5493584316880'},
   {n:26,nombre:'VINOS',provincia:'SAN JUAN',contacto:'Luis',tel:''},
   {n:27,nombre:'VIZCACHONES',provincia:'ENTRE RÍOS',contacto:'Juge',tel:'5493454114220'},
-  {n:28,nombre:'YAGUARETE',provincia:'MISIONES',contacto:'Carlos',tel:'5493764686400'}
+  {n:28,nombre:'YAGUARETE',provincia:'MISIONES',contacto:'Carlos',tel:'5493764686400',ig:'yaguaretemisiones'}
 ];
 
 function renderAgrupaciones(){
@@ -251,9 +253,14 @@ function renderAgrupaciones(){
       html+='<div class="agrup-contacto">';
       if(a.contacto)html+='<div class="agrup-contacto-name">👤 '+a.contacto+'</div>';
       if(a.tel)html+='<a class="agrup-wa" href="https://wa.me/'+a.tel+'" target="_blank">💬 WhatsApp</a>';
+      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" target="_blank">📸 @'+a.ig+'</a>';
       html+='</div>';
     }else{
-      html+='<div class="agrup-contacto"><div class="agrup-sin-contacto">Contacto próximamente</div></div>';
+      var hasIg=a.ig?true:false;
+      html+='<div class="agrup-contacto">';
+      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" target="_blank">📸 @'+a.ig+'</a>';
+      if(!hasIg)html+='<div class="agrup-sin-contacto">Contacto próximamente</div>';
+      html+='</div>';
     }
     html+='</div>';
   });
