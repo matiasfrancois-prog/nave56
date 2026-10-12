@@ -117,9 +117,25 @@ var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 var sponsorCanchas={'1':'MOG SUPPLY'};
 var isAdmin=false;
 var currentFilter='todos';
+var EQUIPOS_DEFAULT=[
+  {nombre:'ALACRANES',cat:'Veteranos'},{nombre:'ALBATROS',cat:'Veteranos'},
+  {nombre:'AÑEJOS XV',cat:'Veteranos'},{nombre:'AVARCA',cat:'Veteranos'},
+  {nombre:'BICHOS CANASTOS',cat:'Veteranos'},{nombre:'CHAMIGOS',cat:'Veteranos'},
+  {nombre:'CHOROI',cat:'Veteranos'},{nombre:'CHUPAT',cat:'Veteranos'},
+  {nombre:'CONDORES XV',cat:'Veteranos'},{nombre:'DORADOS',cat:'Veteranos'},
+  {nombre:'FORMOBICHOS',cat:'Veteranos'},{nombre:'INVITACION 70',cat:'Veteranos'},
+  {nombre:'JOVATOS',cat:'Veteranos'},{nombre:'LOS PICHIS',cat:'Veteranos'},
+  {nombre:'OLD VIRGINS',cat:'Veteranos'},{nombre:'PLAGA',cat:'Veteranos'},
+  {nombre:'RETOBAOS',cat:'Veteranos'},{nombre:'SIRIRI',cat:'Veteranos'},
+  {nombre:'TORTUGAS',cat:'Veteranos'},{nombre:'UVA',cat:'Veteranos'},
+  {nombre:'UVASAL',cat:'Veteranos'},{nombre:'VARBA',cat:'Veteranos'},
+  {nombre:'VERRACOS',cat:'Veteranos'},{nombre:'VIEJOS GUANACOS',cat:'Veteranos'},
+  {nombre:'VIKINGOS',cat:'Veteranos'},{nombre:'VINOS',cat:'Veteranos'},
+  {nombre:'VIZCACHONES',cat:'Veteranos'},{nombre:'YAGUARETE',cat:'Veteranos'}
+];
 var state={partidos:[],equipos:[],gastro:[],sponsors:[]};
 
-function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);if(e)state.equipos=JSON.parse(e);if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);}catch(e){}}
+function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();}}
 function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));}catch(e){}}
 
 function showTab(name){
