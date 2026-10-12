@@ -27,7 +27,7 @@
   color-scheme:light;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;}
-body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;}
 /* ── LAYOUT ── */
 .app-shell{display:flex;min-height:100vh;}
 /* SIDEBAR */
@@ -49,19 +49,44 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;justify-content:space-between;}
 .top-bar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);letter-spacing:.08em;opacity:.7;}
 .header-actions{display:flex;gap:8px;align-items:center;}
-.main-content{flex:1;padding:28px 28px;max-width:980px;width:100%;}
+.main-content{flex:1;padding:24px 20px;max-width:980px;width:100%;}
 /* MOBILE */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom,0px);}
 .mobile-nav-inner{display:flex;overflow-x:auto;scrollbar-width:none;padding:4px 6px;}
 .mobile-nav-inner::-webkit-scrollbar{display:none;}
-.mobile-nav .nav-tab{flex-direction:column;gap:3px;padding:8px 10px;min-width:68px;text-align:center;align-items:center;border-radius:8px;}
-.mobile-nav .nav-tab .tab-icon{font-size:20px;}
-.mobile-nav .nav-tab .tab-label{font-size:10px;white-space:nowrap;}
+.mobile-nav .nav-tab{flex-direction:column;gap:4px;padding:10px 10px;min-width:72px;text-align:center;align-items:center;border-radius:8px;}
+.mobile-nav .nav-tab .tab-icon{font-size:22px;}
+.mobile-nav .nav-tab .tab-label{font-size:11px;white-space:nowrap;font-weight:500;}
 @media(max-width:700px){
   .sidebar{display:none;}
   .mobile-nav{display:block;}
-  .main-content{padding:18px 16px 88px;}
-  .top-bar{padding:9px 16px;}
+  .main-content{padding:16px 14px 96px;}
+  .top-bar{padding:10px 14px;}
+  .section-title{font-size:20px;}
+  .team-name{font-size:16px;}
+  .partido-score{font-size:28px;}
+  .partido-meta{font-size:14px;}
+  .stat-label{font-size:13px;}
+  .stat-value{font-size:28px;}
+  .filter-btn{font-size:15px;padding:8px 18px;}
+  .badge{font-size:13px;padding:4px 11px;}
+  .agrup-nombre{font-size:18px;}
+  .agrup-provincia{font-size:14px;}
+  .agrup-contacto-name{font-size:15px;}
+  .agrup-wa,.agrup-ig{font-size:15px;padding:10px 18px;}
+  .crono-title{font-size:16px;}
+  .crono-desc{font-size:14px;}
+  .crono-time{font-size:26px;}
+  .gastro-name{font-size:16px;}
+  .gastro-desc,.gastro-tipo,.gastro-horario{font-size:14px;}
+  .historial-score{font-size:28px;}
+  .historial-meta{font-size:14px;}
+  .cancha-num{font-size:34px;}
+  .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .agrup-grid{grid-template-columns:1fr;}
+  .canchas-grid{grid-template-columns:1fr;}
+  .admin-list-item-name{font-size:15px;}
+  .admin-list-item-sub{font-size:13px;}
 }
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
@@ -208,9 +233,9 @@ var sponsorCanchas={'1':'MOG SUPPLY'};
 var isAdmin=false;
 var currentFilter='todos';
 var AGRUPACIONES=[
-  {n:1,nombre:'ALACRANES',provincia:'CDORO. RIVADAVIA',contacto:'Gaby Yapura',tel:'5492975949705'},
-  {n:2,nombre:'ALBATROS',provincia:'PARANÁ',contacto:'',tel:''},
-  {n:3,nombre:'AÑEJOS XV',provincia:'URUGUAY',contacto:'',tel:''},
+  {n:1,nombre:'ALACRANES',provincia:'CDORO. RIVADAVIA',contacto:'Gaby Yapura',tel:'5492975949705',ig:'alacranes_cr'},
+  {n:2,nombre:'ALBATROS',provincia:'PARANÁ',contacto:'',tel:'',ig:'albatrosrugbyclub'},
+  {n:3,nombre:'AÑEJOS XV',provincia:'URUGUAY',contacto:'',tel:'',ig:'anejosxv'},
   {n:4,nombre:'AVARCA',provincia:'CATAMARCA',contacto:'Juan Bellón',tel:'5493834053670'},
   {n:5,nombre:'BICHOS CANASTOS',provincia:'NEUQUÉN',contacto:'Rodrigo Bonsangue',tel:'5492995052495'},
   {n:6,nombre:'CHAMIGOS',provincia:'CORRIENTES',contacto:'',tel:'',ig:'chamigosclassics2020'},
@@ -220,7 +245,6 @@ var AGRUPACIONES=[
   {n:10,nombre:'DORADOS',provincia:'CHACO',contacto:'',tel:''},
   {n:11,nombre:'FORMOBICHOS',provincia:'FORMOSA',contacto:'',tel:''},
   {n:12,nombre:'INVITACION 70',provincia:'BUENOS AIRES',contacto:'Jorge Galimberti',tel:'5491156637702'},
-  {n:13,nombre:'JOVATOS',provincia:'ROSARIO',contacto:'Neri',tel:'5493416911405'},
   {n:14,nombre:'LOS PICHIS',provincia:'SGO. DEL ESTERO',contacto:'Roly Pividori / Emilio Nazar',tel:'5493855001095'},
   {n:15,nombre:'OLD VIRGINS',provincia:'TUCUMÁN',contacto:'Bubu',tel:'543816856481',ig:'oldivirginsok'},
   {n:16,nombre:'PLAGA',provincia:'LA PLATA',contacto:'',tel:''},
@@ -274,7 +298,7 @@ var EQUIPOS_DEFAULT=[
   {nombre:'CHOROI',cat:'Veteranos'},{nombre:'CHUPAT',cat:'Veteranos'},
   {nombre:'CONDORES XV',cat:'Veteranos'},{nombre:'DORADOS',cat:'Veteranos'},
   {nombre:'FORMOBICHOS',cat:'Veteranos'},{nombre:'INVITACION 70',cat:'Veteranos'},
-  {nombre:'JOVATOS',cat:'Veteranos'},{nombre:'LOS PICHIS',cat:'Veteranos'},
+  {nombre:'LOS PICHIS',cat:'Veteranos'},
   {nombre:'OLD VIRGINS',cat:'Veteranos'},{nombre:'PLAGA',cat:'Veteranos'},
   {nombre:'RETOBAOS',cat:'Veteranos'},{nombre:'SIRIRI',cat:'Veteranos'},
   {nombre:'TORTUGAS',cat:'Veteranos'},{nombre:'UVA',cat:'Veteranos'},
