@@ -105,6 +105,20 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .admin-list-item-name{font-weight:600;font-size:14px;}
 .admin-list-item-sub{font-size:12px;color:var(--muted);}
 .admin-partido-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:6px;}
+/* AGRUPACIONES */
+.agrup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.agrup-header{display:flex;align-items:center;gap:12px;}
+.agrup-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);min-width:28px;}
+.agrup-escudo{width:44px;height:44px;border-radius:8px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.agrup-info{flex:1;min-width:0;}
+.agrup-nombre{font-weight:700;font-size:15px;line-height:1.2;}
+.agrup-provincia{font-size:12px;color:var(--muted);margin-top:2px;}
+.agrup-contacto{display:flex;flex-direction:column;gap:4px;padding-top:4px;border-top:1px solid var(--border);}
+.agrup-contacto-name{font-size:13px;color:var(--fg);}
+.agrup-wa{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;}
+.agrup-wa:hover{background:#1ebe5d;}
+.agrup-sin-contacto{font-size:12px;color:var(--muted);font-style:italic;}
 /* CRONOGRAMA */
 .crono-day{margin-bottom:28px;}
 .crono-day-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--accent);}
@@ -136,6 +150,61 @@ var SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 var sponsorCanchas={'1':'MOG SUPPLY'};
 var isAdmin=false;
 var currentFilter='todos';
+var AGRUPACIONES=[
+  {n:1,nombre:'ALACRANES',provincia:'CDORO. RIVADAVIA',contacto:'Gaby Yapura',tel:'5492975949705'},
+  {n:2,nombre:'ALBATROS',provincia:'PARANÁ',contacto:'',tel:''},
+  {n:3,nombre:'AÑEJOS XV',provincia:'URUGUAY',contacto:'',tel:''},
+  {n:4,nombre:'AVARCA',provincia:'CATAMARCA',contacto:'Juan Bellón',tel:'5493834053670'},
+  {n:5,nombre:'BICHOS CANASTOS',provincia:'NEUQUÉN',contacto:'Rodrigo Bonsangue',tel:'5492995052495'},
+  {n:6,nombre:'CHAMIGOS',provincia:'CORRIENTES',contacto:'',tel:''},
+  {n:7,nombre:'CHOROI',provincia:'BAHÍA BLANCA',contacto:'Jorge Asensio',tel:'5492915028293'},
+  {n:8,nombre:'CHUPAT',provincia:'PUERTO MADRYN',contacto:'Cesar Pedernera',tel:'5492804410309'},
+  {n:9,nombre:'CONDORES XV',provincia:'INVITACIÓN',contacto:'Pancho',tel:'5491132095637'},
+  {n:10,nombre:'DORADOS',provincia:'CHACO',contacto:'',tel:''},
+  {n:11,nombre:'FORMOBICHOS',provincia:'FORMOSA',contacto:'',tel:''},
+  {n:12,nombre:'INVITACION 70',provincia:'BUENOS AIRES',contacto:'Jorge Galimberti',tel:'5491156637702'},
+  {n:13,nombre:'JOVATOS',provincia:'ROSARIO',contacto:'Neri',tel:'5493416911405'},
+  {n:14,nombre:'LOS PICHIS',provincia:'SGO. DEL ESTERO',contacto:'Roly Pividori / Emilio Nazar',tel:'5493855001095'},
+  {n:15,nombre:'OLD VIRGINS',provincia:'TUCUMÁN',contacto:'Bubu',tel:'543816856481'},
+  {n:16,nombre:'PLAGA',provincia:'LA PLATA',contacto:'',tel:''},
+  {n:17,nombre:'RETOBAOS',provincia:'SAN RAFAEL · MZA',contacto:'',tel:''},
+  {n:18,nombre:'SIRIRI',provincia:'SANTA FE',contacto:'',tel:''},
+  {n:19,nombre:'TORTUGAS',provincia:'MENDOZA',contacto:'Guille',tel:''},
+  {n:20,nombre:'UVA',provincia:'CÓRDOBA',contacto:'Diego Linardi',tel:'5493512120079'},
+  {n:21,nombre:'UVASAL',provincia:'SAN LUIS',contacto:'',tel:''},
+  {n:22,nombre:'VARBA',provincia:'BUENOS AIRES',contacto:'',tel:''},
+  {n:23,nombre:'VERRACOS',provincia:'RÍO NEGRO',contacto:'',tel:''},
+  {n:24,nombre:'VIEJOS GUANACOS',provincia:'TIERRA DEL FUEGO',contacto:'Daniel Sosa Quintana',tel:'5492964604766'},
+  {n:25,nombre:'VIKINGOS',provincia:'RÍO CUARTO',contacto:'Tomás Ronza',tel:'5493584316880'},
+  {n:26,nombre:'VINOS',provincia:'SAN JUAN',contacto:'Luis',tel:''},
+  {n:27,nombre:'VIZCACHONES',provincia:'ENTRE RÍOS',contacto:'Juge',tel:'5493454114220'},
+  {n:28,nombre:'YAGUARETE',provincia:'MISIONES',contacto:'Carlos',tel:'5493764686400'}
+];
+
+function renderAgrupaciones(){
+  var grid=document.getElementById('agrup-grid');
+  if(!grid)return;
+  var html='';
+  AGRUPACIONES.forEach(function(a){
+    html+='<div class="agrup-card">';
+    html+='<div class="agrup-header">';
+    html+='<div class="agrup-num">'+a.n+'</div>';
+    html+='<div class="agrup-escudo">🛡</div>';
+    html+='<div class="agrup-info"><div class="agrup-nombre">'+a.nombre+'</div><div class="agrup-provincia">📍 '+a.provincia+'</div></div>';
+    html+='</div>';
+    if(a.contacto||a.tel){
+      html+='<div class="agrup-contacto">';
+      if(a.contacto)html+='<div class="agrup-contacto-name">👤 '+a.contacto+'</div>';
+      if(a.tel)html+='<a class="agrup-wa" href="https://wa.me/'+a.tel+'" target="_blank">💬 WhatsApp</a>';
+      html+='</div>';
+    }else{
+      html+='<div class="agrup-contacto"><div class="agrup-sin-contacto">Contacto próximamente</div></div>';
+    }
+    html+='</div>';
+  });
+  grid.innerHTML=html;
+}
+
 var EQUIPOS_DEFAULT=[
   {nombre:'ALACRANES',cat:'Veteranos'},{nombre:'ALBATROS',cat:'Veteranos'},
   {nombre:'AÑEJOS XV',cat:'Veteranos'},{nombre:'AVARCA',cat:'Veteranos'},
@@ -171,6 +240,7 @@ function showTab(name){
   if(name==='historial')renderHistorial();
   if(name==='gastro')renderGastroPublic();
   if(name==='sponsors')renderSponsors();
+  if(name==='agrupaciones')renderAgrupaciones();
 }
 
 function openAdmin(){
@@ -475,6 +545,7 @@ window.addEventListener('resize',function(){if(document.getElementById('tab-mapa
     <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')">📍 Mapa</button>
     <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')">🤝 Sponsors</button>
     <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')">🍖 Gastronomía</button>
+    <button class="nav-tab" id="tab-agrupaciones-nav" onclick="showTab('agrupaciones')">🛡 Agrupaciones</button>
     <button class="nav-tab" id="tab-cronograma-nav" onclick="showTab('cronograma')">📅 Cronograma</button>
   </div>
 </nav>
@@ -602,6 +673,12 @@ window.addEventListener('resize',function(){if(document.getElementById('tab-mapa
     <div class="admin-section-title">Reset</div>
     <button class="btn-danger" onclick="resetAll()">⚠ Borrar todos los datos</button>
   </div>
+</div>
+
+<!-- AGRUPACIONES -->
+<div class="tab-panel" id="tab-agrupaciones">
+  <div class="section-title">🛡 Agrupaciones</div>
+  <div class="agrup-grid" id="agrup-grid"></div>
 </div>
 
 <!-- CRONOGRAMA -->
