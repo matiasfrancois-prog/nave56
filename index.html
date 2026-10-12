@@ -7,19 +7,40 @@
 @media(prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f0f2f5;--surface:#fff;--card:#f8f9fa;--border:#d0d7de;--fg:#1a1a2e;--muted:#57606a;color-scheme:light;}}
 :root[data-theme="light"]{--bg:#f0f2f5;--surface:#fff;--card:#f8f9fa;--border:#d0d7de;--fg:#1a1a2e;--muted:#57606a;color-scheme:light;}
 *,*::before,*::after{box-sizing:border-box;margin:0;}
-body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;padding-inline:16px;padding-block:0 24px;}
-.app-header{position:sticky;top:env(safe-area-inset-top,0px);background:var(--surface);border-bottom:1px solid var(--border);z-index:100;padding-block:10px;}
-.header-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.logo-text{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--accent);line-height:1;}
-.logo-sub{font-size:11px;color:var(--muted);letter-spacing:.08em;}
+body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.5;}
+/* ── LAYOUT ── */
+.app-shell{display:flex;min-height:100vh;}
+/* SIDEBAR – desktop */
+.sidebar{width:200px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid var(--border);}
+.logo-text{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--accent);line-height:1;}
+.logo-sub{font-size:11px;color:var(--muted);letter-spacing:.06em;margin-top:2px;}
+.sidebar-nav{display:flex;flex-direction:column;padding:10px 8px;gap:4px;flex:1;}
+.nav-tab{background:none;border:none;border-radius:10px;padding:12px 14px;font-size:15px;font-weight:500;color:var(--muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;width:100%;transition:.15s;line-height:1.2;}
+.nav-tab:hover{background:rgba(255,255,255,.05);color:var(--fg);}
+.nav-tab.active{background:rgba(200,168,75,.12);color:var(--accent);font-weight:700;}
+.nav-tab .tab-icon{font-size:20px;flex-shrink:0;}
+.nav-tab .tab-label{font-size:14px;}
+.sidebar-actions{padding:12px 8px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
+/* CONTENIDO principal */
+.app-body{flex:1;min-width:0;display:flex;flex-direction:column;}
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;}
+.top-bar-title{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--accent);letter-spacing:.04em;}
 .header-actions{display:flex;gap:8px;align-items:center;}
-.nav-bar{background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:calc(env(safe-area-inset-top,0px) + 56px);z-index:99;}
-.nav-inner{max-width:900px;margin:0 auto;display:flex;gap:2px;overflow-x:auto;padding-block:6px;scrollbar-width:none;}
-.nav-inner::-webkit-scrollbar{display:none;}
-.nav-tab{background:none;border:1.5px solid transparent;border-radius:20px;padding:6px 16px;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;transition:.15s;}
-.nav-tab:hover{color:var(--fg);}
-.nav-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(200,168,75,.08);}
-.main-content{max-width:900px;margin:0 auto;padding-top:20px;}
+.main-content{flex:1;padding:20px;max-width:960px;width:100%;}
+/* MOBILE – barra inferior */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom,0px);}
+.mobile-nav-inner{display:flex;overflow-x:auto;scrollbar-width:none;padding:4px 4px;}
+.mobile-nav-inner::-webkit-scrollbar{display:none;}
+.mobile-nav .nav-tab{flex-direction:column;gap:3px;padding:8px 10px;min-width:70px;text-align:center;align-items:center;border-radius:8px;font-size:11px;}
+.mobile-nav .nav-tab .tab-icon{font-size:22px;}
+.mobile-nav .nav-tab .tab-label{font-size:10px;white-space:nowrap;}
+@media(max-width:700px){
+  .sidebar{display:none;}
+  .mobile-nav{display:block;}
+  .main-content{padding:14px 14px 90px;}
+  .top-bar{padding:8px 14px;}
+}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 .section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.06em;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:16px;}
@@ -233,8 +254,10 @@ function showTab(name){
   for(var i=0;i<tabs.length;i++)tabs[i].classList.remove('active');
   var p=document.getElementById('tab-'+name);
   var t=document.getElementById('tab-'+name+'-nav');
+  var m=document.getElementById('tab-'+name+'-mob');
   if(p)p.classList.add('active');
   if(t)t.classList.add('active');
+  if(m)m.classList.add('active');
   if(name==='mapa')setTimeout(renderMapa,100);
   if(name==='canchas')renderCanchas();
   if(name==='historial')renderHistorial();
@@ -246,9 +269,9 @@ function showTab(name){
 function openAdmin(){
   if(!isAdmin){
     isAdmin=true;
-    var nav=document.querySelector('.nav-inner');
+    var nav=document.querySelector('.sidebar-nav');
     var exists=document.getElementById('tab-admin-nav');
-    if(!exists){var btn=document.createElement('button');btn.className='nav-tab';btn.id='tab-admin-nav';btn.textContent='⚙ Admin';btn.setAttribute('onclick',"showTab('admin')");nav.appendChild(btn);}
+    if(!exists){var btn=document.createElement('button');btn.className='nav-tab';btn.id='tab-admin-nav';btn.setAttribute('onclick',"showTab('admin')");btn.innerHTML='<span class="tab-icon">⚙</span><span class="tab-label">Admin</span>';nav.appendChild(btn);}
     fillEquiposList();renderAdminPartidos();renderGastro();renderSponsors();
   }
   showTab('admin');
@@ -527,29 +550,35 @@ window.addEventListener('resize',function(){if(document.getElementById('tab-mapa
 
 <div id="authModal" hidden></div>
 
-<header class="app-header">
-  <div class="header-inner">
-    <div><div class="logo-text">NAVE56</div><div class="logo-sub">BUENOS AIRES · NOV 2026</div></div>
-    <div class="header-actions">
-      <button class="btn-pdf" onclick="exportPDF()">⬇ PDF</button>
-      <button class="btn-open-admin" onclick="openAdmin()">⚙ Admin</button>
-    </div>
+<div class="app-shell">
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-text">NAVE56</div>
+    <div class="logo-sub">BUENOS AIRES · NOV 2026</div>
   </div>
-</header>
-
-<nav class="nav-bar">
-  <div class="nav-inner">
-    <button class="nav-tab active" id="tab-fixture-nav" onclick="showTab('fixture')">🏉 Fixture</button>
-    <button class="nav-tab" id="tab-canchas-nav" onclick="showTab('canchas')">🟢 Canchas</button>
-    <button class="nav-tab" id="tab-historial-nav" onclick="showTab('historial')">📋 Historial</button>
-    <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')">📍 Mapa</button>
-    <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')">🤝 Sponsors</button>
-    <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')">🍖 Gastronomía</button>
-    <button class="nav-tab" id="tab-agrupaciones-nav" onclick="showTab('agrupaciones')">🛡 Agrupaciones</button>
-    <button class="nav-tab" id="tab-cronograma-nav" onclick="showTab('cronograma')">📅 Cronograma</button>
+  <div class="sidebar-nav">
+    <button class="nav-tab active" id="tab-fixture-nav" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
+    <button class="nav-tab" id="tab-canchas-nav" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
+    <button class="nav-tab" id="tab-historial-nav" onclick="showTab('historial')"><span class="tab-icon">📋</span><span class="tab-label">Historial</span></button>
+    <button class="nav-tab" id="tab-agrupaciones-nav" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
+    <button class="nav-tab" id="tab-cronograma-nav" onclick="showTab('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
+    <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
+    <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
+    <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
+  </div>
+  <div class="sidebar-actions">
+    <button class="btn-pdf" onclick="exportPDF()">⬇ PDF</button>
+    <button class="btn-open-admin" onclick="openAdmin()">⚙ Admin</button>
   </div>
 </nav>
-
+<div class="app-body">
+<div class="top-bar">
+  <div class="top-bar-title">NAVE56 · 2026</div>
+  <div class="header-actions" style="display:flex;gap:8px;">
+    <button class="btn-pdf" onclick="exportPDF()">⬇ PDF</button>
+    <button class="btn-open-admin" onclick="openAdmin()">⚙ Admin</button>
+  </div>
+</div>
 <main class="main-content">
 
 <div class="tab-panel active" id="tab-fixture">
@@ -819,5 +848,22 @@ window.addEventListener('resize',function(){if(document.getElementById('tab-mapa
 </div>
 
 </main>
+</div><!-- app-body -->
+</div><!-- app-shell -->
+
+<!-- MOBILE NAV – barra inferior -->
+<nav class="mobile-nav">
+  <div class="mobile-nav-inner">
+    <button class="nav-tab active" id="tab-fixture-mob" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
+    <button class="nav-tab" id="tab-canchas-mob" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
+    <button class="nav-tab" id="tab-historial-mob" onclick="showTab('historial')"><span class="tab-icon">📋</span><span class="tab-label">Historial</span></button>
+    <button class="nav-tab" id="tab-agrupaciones-mob" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
+    <button class="nav-tab" id="tab-cronograma-mob" onclick="showTab('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
+    <button class="nav-tab" id="tab-mapa-mob" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
+    <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
+    <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
+  </div>
+</nav>
+
 <div class="toast" id="toast"></div>
 
