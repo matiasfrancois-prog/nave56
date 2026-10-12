@@ -322,7 +322,7 @@ function renderAdminPartidos(){
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-weight:600;">'+p.local+' vs '+p.visitante+'</div><button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
     html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+'</div>';
     html+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
-    html+='<div style="display:flex;align-items:center;gap:8px;"><input class="score-input" type="number" min="0" value="'+(p.score_local||0)+'" onchange="updateScore('+i+','local',this.value)"><span style="font-size:18px;">–</span><input class="score-input" type="number" min="0" value="'+(p.score_visit||0)+'" onchange="updateScore('+i+','visit',this.value)"></div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;"><input class="score-input" type="number" min="0" value="'+(p.score_local||0)+'" onchange="updateScore('+i+',\'local\',this.value)"><span style="font-size:18px;">–</span><input class="score-input" type="number" min="0" value="'+(p.score_visit||0)+'" onchange="updateScore('+i+',\'visit\',this.value)"></div>';
     var opts=['proximo','live','finalizado'].map(function(e){return'<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+e+'</option>';}).join('');
     html+='<select style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--fg);font-size:13px;" onchange="updateEstado('+i+',this.value)">'+opts+'</select>';
     html+='</div></div>';
