@@ -1,4 +1,3 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>NAVE56 · Buenos Aires 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap">
@@ -754,7 +753,21 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 }
 </style>
 
-<div id="authModal" hidden></div>
+<!-- MODAL DE AUTENTICACIÓN ADMIN -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal-box">
+    <div class="modal-title">🔐 Panel Admin</div>
+    <div class="form-field">
+      <label for="authPass">Contraseña</label>
+      <input type="password" id="authPass" placeholder="nave56admin2026" onkeydown="if(event.key==='Enter')checkAuth()">
+      <div class="modal-error" id="authError" hidden>Contraseña incorrecta</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn-save" onclick="checkAuth()">Ingresar</button>
+      <button class="btn-admin" onclick="cancelAdmin()">Cancelar</button>
+    </div>
+  </div>
+</div>
 
 <!-- HEADER -->
 <header class="app-header">
@@ -1790,8 +1803,19 @@ function renderAdminPartidos() {
 // ADMIN AUTH
 // ════════════════════════════════════════════════════════════════
 function openAdmin() {
-  if (!isAdmin) {
+  if (isAdmin) { showTab('admin'); return; }
+  document.getElementById('authModal').hidden = false;
+  setTimeout(function(){ document.getElementById('authPass').focus(); }, 50);
+}
+
+function checkAuth() {
+  var pass = document.getElementById('authPass').value;
+  if (pass === ADMIN_PASS) {
     isAdmin = true;
+    document.getElementById('authModal').hidden = true;
+    document.getElementById('authError').hidden = true;
+    document.getElementById('authPass').value = '';
+    // Agregar tab admin
     var nav = document.querySelector('.nav-inner');
     var exists = document.getElementById('tab-admin-nav');
     if (!exists) {
@@ -1806,12 +1830,12 @@ function openAdmin() {
     renderAdminPartidos();
     renderGastro();
     renderSponsors();
+    showTab('admin');
+    showToast('Bienvenido al panel admin ✓');
+  } else {
+    document.getElementById('authError').hidden = false;
   }
-  showTab('admin');
 }
-
-function checkAuth() { openAdmin(); }
-
 
 function cancelAdmin() {
   document.getElementById('authModal').hidden = true;
@@ -1972,5 +1996,3 @@ setInterval(function() {
   });
 }, 20000);
 </script>
-
-</body></html>
