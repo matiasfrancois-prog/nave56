@@ -753,21 +753,7 @@ tbody td { padding: 10px 12px; vertical-align: middle; }
 }
 </style>
 
-<!-- MODAL DE AUTENTICACIÓN ADMIN -->
-<div class="modal-overlay" id="authModal">
-  <div class="modal-box">
-    <div class="modal-title">🔐 Panel Admin</div>
-    <div class="form-field">
-      <label for="authPass">Contraseña</label>
-      <input type="password" id="authPass" placeholder="nave56admin2026" onkeydown="if(event.key==='Enter')checkAuth()">
-      <div class="modal-error" id="authError" hidden>Contraseña incorrecta</div>
-    </div>
-    <div style="display:flex;gap:8px;margin-top:14px;">
-      <button class="btn-save" onclick="checkAuth()">Ingresar</button>
-      <button class="btn-admin" onclick="cancelAdmin()">Cancelar</button>
-    </div>
-  </div>
-</div>
+<div id="authModal" hidden></div>
 
 <!-- HEADER -->
 <header class="app-header">
@@ -1803,19 +1789,8 @@ function renderAdminPartidos() {
 // ADMIN AUTH
 // ════════════════════════════════════════════════════════════════
 function openAdmin() {
-  if (isAdmin) { showTab('admin'); return; }
-  document.getElementById('authModal').hidden = false;
-  setTimeout(function(){ document.getElementById('authPass').focus(); }, 50);
-}
-
-function checkAuth() {
-  var pass = document.getElementById('authPass').value;
-  if (pass === ADMIN_PASS) {
+  if (!isAdmin) {
     isAdmin = true;
-    document.getElementById('authModal').hidden = true;
-    document.getElementById('authError').hidden = true;
-    document.getElementById('authPass').value = '';
-    // Agregar tab admin
     var nav = document.querySelector('.nav-inner');
     var exists = document.getElementById('tab-admin-nav');
     if (!exists) {
@@ -1830,18 +1805,12 @@ function checkAuth() {
     renderAdminPartidos();
     renderGastro();
     renderSponsors();
-    showTab('admin');
-    showToast('Bienvenido al panel admin ✓');
-  } else {
-    document.getElementById('authError').hidden = false;
   }
+  showTab('admin');
 }
 
-function cancelAdmin() {
-  document.getElementById('authModal').hidden = true;
-  document.getElementById('authError').hidden = true;
-  document.getElementById('authPass').value = '';
-}
+function checkAuth() { openAdmin(); }
+function cancelAdmin() {}
 
 // ════════════════════════════════════════════════════════════════
 // EXPORT PDF
