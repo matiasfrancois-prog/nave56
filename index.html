@@ -53,15 +53,14 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .main-content{flex:1;padding:24px 20px;max-width:980px;width:100%;}
 /* MOBILE */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom,0px);}
-.mobile-nav-inner{display:flex;overflow-x:auto;scrollbar-width:none;padding:4px 6px;}
-.mobile-nav-inner::-webkit-scrollbar{display:none;}
-.mobile-nav .nav-tab{flex-direction:column;gap:4px;padding:10px 10px;min-width:72px;text-align:center;align-items:center;border-radius:8px;}
-.mobile-nav .nav-tab .tab-icon{font-size:22px;}
-.mobile-nav .nav-tab .tab-label{font-size:11px;white-space:nowrap;font-weight:500;}
+.mobile-nav-inner{display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding:4px 4px;}
+.mobile-nav .nav-tab{flex-direction:column;gap:3px;padding:8px 4px;text-align:center;align-items:center;border-radius:8px;width:100%;min-width:0;}
+.mobile-nav .nav-tab .tab-icon{font-size:20px;}
+.mobile-nav .nav-tab .tab-label{font-size:10px;white-space:nowrap;font-weight:500;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 @media(max-width:700px){
   .sidebar{display:none;}
   .mobile-nav{display:block;}
-  .main-content{padding:16px 14px 96px;}
+  .main-content{padding:16px 14px 140px;}
   .top-bar{padding:10px 14px;}
   .section-title{font-size:20px;}
   .team-name{font-size:16px;}
