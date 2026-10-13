@@ -114,6 +114,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .partido-center{text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;}
 .partido-score{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:.04em;}
 .partido-meta{font-size:13px;color:var(--muted);}
+.partido-referee{font-size:11px;color:var(--muted);margin-top:3px;opacity:.8;}
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:.04em;}
 .badge-live{background:var(--green);color:#000;}
 .badge-fin{background:var(--faint);color:var(--muted);}
@@ -448,7 +449,9 @@ function renderPartidos(){
     if(p.estado!=='proximo')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
     html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
     if(diaLabel)html+=' <span style="font-size:11px;color:var(--muted);">'+diaLabel+'</span>';
-    html+='</div></div>';
+    html+='</div>';
+    html+='<div class="partido-referee">🏳 Referee: '+(p.referee||'<span style="opacity:.5">—</span>')+'</div>';
+    html+='</div>';
     html+='<div class="team-name team-right">'+(p.visitante||'?')+'</div></div>';
   });
   list.innerHTML=html;
@@ -713,8 +716,9 @@ function addPartido(){
   var hora=document.getElementById('p-hora').value;
   var estado=document.getElementById('p-estado').value;
   var cat=document.getElementById('p-cat')?document.getElementById('p-cat').value:'A';
+  var referee=document.getElementById('p-referee')?document.getElementById('p-referee').value.trim():'';
   if(!local||!visit||local===visit){showToast('Seleccioná dos equipos distintos');return;}
-  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat});
+  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,referee:referee});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
 
@@ -725,7 +729,8 @@ function renderAdminPartidos(){
   state.partidos.forEach(function(p,i){
     html+='<div class="admin-partido-row">';
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-weight:600;">'+p.local+' vs '+p.visitante+'</div><button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
-    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+'</div>';
+    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+'</div>';
+    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">🏳 Referee: <input type="text" value="'+(p.referee||'')+'" placeholder="—" style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;color:var(--fg);width:160px;" onchange="updateReferee('+i+',this.value)"></div>';
     html+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
     html+='<div style="display:flex;align-items:center;gap:8px;"><input class="score-input" type="number" min="0" value="'+(p.score_local||0)+'" onchange="updateScore('+i+',\'local\',this.value)"><span style="font-size:18px;">–</span><input class="score-input" type="number" min="0" value="'+(p.score_visit||0)+'" onchange="updateScore('+i+',\'visit\',this.value)"></div>';
     var opts=['proximo','live','finalizado'].map(function(e){return'<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+e+'</option>';}).join('');
@@ -737,6 +742,7 @@ function renderAdminPartidos(){
 
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();renderPartidos();renderMapa();}
 function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();}
+function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
 
 function addGastro(){
@@ -1040,6 +1046,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
       <div class="form-field"><label>División</label><select id="p-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Vet</option></select></div>
+      <div class="form-field"><label>Referee</label><input type="text" id="p-referee" placeholder="Nombre del árbitro"></div>
     </div>
     <button class="btn-save" onclick="addPartido()" style="margin-bottom:14px;">+ Agregar Partido</button>
     <div id="admin-partidos-list"></div>
