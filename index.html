@@ -181,7 +181,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}
 .agrup-header{display:flex;align-items:center;gap:12px;}
 .agrup-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);min-width:28px;}
-.agrup-escudo{width:44px;height:44px;border-radius:8px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.agrup-escudo{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
+.agrup-escudo img{width:48px;height:48px;object-fit:contain;display:block;}
 .agrup-info{flex:1;min-width:0;}
 .agrup-nombre{font-weight:700;font-size:17px;line-height:1.2;}
 .agrup-provincia{font-size:13px;color:var(--muted);margin-top:2px;}
@@ -285,7 +286,7 @@ function renderAgrupaciones(){
     html+='<div class="agrup-card">';
     html+='<div class="agrup-header">';
     html+='<div class="agrup-num">'+a.n+'</div>';
-    html+='<div class="agrup-escudo">🛡</div>';
+    var logoSrc=EQUIPO_LOGOS[a.nombre]||'';html+='<div class="agrup-escudo">';if(logoSrc){html+='<img src="'+logoSrc+'" alt="'+a.nombre+'" style="width:48px;height:48px;object-fit:contain;display:block;">';}else{html+='<span style="font-size:28px;">🛡</span>';}html+='</div>';
     html+='<div class="agrup-info"><div class="agrup-nombre">'+a.nombre+'</div><div class="agrup-provincia">📍 '+a.provincia+'</div></div>';
     html+='</div>';
     if(a.contacto||a.tel){
