@@ -191,6 +191,20 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .agrup-ig{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;}
 .agrup-ig:hover{opacity:.85;}
 .agrup-sin-contacto{font-size:12px;color:var(--muted);font-style:italic;}
+/* COUNTDOWN */
+.countdown-banner{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:22px 20px 20px;margin-bottom:20px;text-align:center;}
+.countdown-wm{position:absolute;inset:0;background-size:contain;background-repeat:no-repeat;background-position:center;opacity:.07;pointer-events:none;filter:grayscale(1);}
+.countdown-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:10px;}
+.countdown-units{display:flex;justify-content:center;gap:6px;align-items:flex-end;}
+.countdown-unit{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.countdown-num{font-family:'Bebas Neue',sans-serif;font-size:52px;line-height:1;color:var(--fg);letter-spacing:.02em;font-variant-numeric:tabular-nums;min-width:64px;text-align:center;}
+.countdown-sep{font-family:'Bebas Neue',sans-serif;font-size:44px;color:var(--accent);line-height:1;padding-bottom:6px;}
+.countdown-sub{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600;}
+.countdown-done{font-family:'Bebas Neue',sans-serif;font-size:28px;color:var(--green);letter-spacing:.04em;}
+@media(max-width:700px){
+  .countdown-num{font-size:44px;min-width:52px;}
+  .countdown-sep{font-size:36px;}
+}
 /* BANNER MOG */
 .mog-banner{padding:12px 10px;border-top:1px solid var(--border);background:rgba(200,168,75,.06);}
 .mog-banner-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--accent);text-align:center;margin-bottom:6px;}
@@ -622,7 +636,37 @@ function initMogBanners(){
     if(s)s.src=src;
   }
 }
-window.addEventListener('DOMContentLoaded',function(){setTimeout(initMogBanners,50);});
+function initCountdown(){
+  var target=new Date('2026-11-21T08:00:00-03:00').getTime();
+  var wm=document.getElementById('countdownWm');
+  var mogSrc=document.querySelector('.mog-banner-img');
+  if(wm&&mogSrc){wm.style.backgroundImage='url('+mogSrc.src+')';}
+  function tick(){
+    var now=new Date().getTime();
+    var diff=target-now;
+    var dd=document.getElementById('cd-days');
+    var dh=document.getElementById('cd-hours');
+    var dm=document.getElementById('cd-mins');
+    var ds=document.getElementById('cd-secs');
+    var disp=document.getElementById('countdownDisplay');
+    if(diff<=0){
+      if(disp)disp.innerHTML='<div class="countdown-done">🏉 ¡El torneo ha comenzado!</div>';
+      return;
+    }
+    var days=Math.floor(diff/(1000*60*60*24));
+    var hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    var mins=Math.floor((diff%(1000*60*60))/(1000*60));
+    var secs=Math.floor((diff%(1000*60))/1000);
+    function pad(n){return n<10?'0'+n:''+n;}
+    if(dd)dd.textContent=days;
+    if(dh)dh.textContent=pad(hours);
+    if(dm)dm.textContent=pad(mins);
+    if(ds)ds.textContent=pad(secs);
+  }
+  tick();
+  setInterval(tick,1000);
+}
+window.addEventListener('DOMContentLoaded',function(){setTimeout(initMogBanners,50);setTimeout(initCountdown,100);});
 </script>
 
 
@@ -669,6 +713,19 @@ window.addEventListener('DOMContentLoaded',function(){setTimeout(initMogBanners,
 <main class="main-content">
 
 <div class="tab-panel active" id="tab-fixture">
+  <div class="countdown-banner" id="countdownBanner">
+    <div class="countdown-wm" id="countdownWm"></div>
+    <div class="countdown-label">⏳ Cuenta regresiva · NAVE56 2026</div>
+    <div class="countdown-units" id="countdownDisplay">
+      <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-sub">días</span></div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-sub">horas</span></div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-sub">min</span></div>
+      <div class="countdown-sep">:</div>
+      <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-sub">seg</span></div>
+    </div>
+  </div>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">📅 Fecha</div><div class="stat-value" style="font-size:16px;">21-22 Nov 2026</div></div>
     <div class="stat-card"><div class="stat-label">📍 Sede</div><div class="stat-value" style="font-size:15px;">Club Hindú</div><div style="margin-top:4px;"><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;letter-spacing:.03em;">Ver en Maps →</a></div></div>
