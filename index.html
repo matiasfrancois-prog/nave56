@@ -637,17 +637,13 @@ function initMogBanners(){
   }
 }
 function initCountdown(){
-  // target: 21 nov 2026 08:00 Buenos Aires (UTC-3)
-  var target=new Date(2026,10,21,8,0,0).getTime(); // month es 0-based: 10=noviembre
-  var dd=document.getElementById('cd-days');
-  var dh=document.getElementById('cd-hours');
-  var dm=document.getElementById('cd-mins');
-  var ds=document.getElementById('cd-secs');
-  var disp=document.getElementById('countdownDisplay');
+  // 21 nov 2026 08:00 UTC-3 = 11:00 UTC
+  var target=new Date('2026-11-21T11:00:00Z').getTime();
   function pad(n){return n<10?'0'+n:''+n;}
   function tick(){
     var now=Date.now();
     var diff=target-now;
+    var disp=document.getElementById('countdownDisplay');
     if(diff<=0){
       if(disp)disp.innerHTML='<div class="countdown-done">🏉 ¡El torneo ha comenzado!</div>';
       return;
@@ -656,6 +652,10 @@ function initCountdown(){
     var hours=Math.floor((diff%86400000)/3600000);
     var mins=Math.floor((diff%3600000)/60000);
     var secs=Math.floor((diff%60000)/1000);
+    var dd=document.getElementById('cd-days');
+    var dh=document.getElementById('cd-hours');
+    var dm=document.getElementById('cd-mins');
+    var ds=document.getElementById('cd-secs');
     if(dd)dd.textContent=days;
     if(dh)dh.textContent=pad(hours);
     if(dm)dm.textContent=pad(mins);
@@ -664,15 +664,22 @@ function initCountdown(){
   tick();
   setInterval(tick,1000);
 }
+function initWatermark(){
+  var wm=document.getElementById('countdownWm');
+  if(!wm)return;
+  // busca la imagen MOG entre todos los img del doc
+  var imgs=document.querySelectorAll('img');
+  for(var i=0;i<imgs.length;i++){
+    if(imgs[i].src&&imgs[i].src.indexOf('data:image')===0&&imgs[i].src.length>10000){
+      wm.style.backgroundImage='url("'+imgs[i].src+'")';
+      break;
+    }
+  }
+}
 window.addEventListener('DOMContentLoaded',function(){
   setTimeout(initMogBanners,50);
-  setTimeout(initCountdown,80);
-  // watermark: aplica el src del logo MOG al fondo del countdown
-  setTimeout(function(){
-    var wm=document.getElementById('countdownWm');
-    var img=document.querySelector('.mog-banner-img');
-    if(wm&&img&&img.src){wm.style.backgroundImage='url("'+img.src+'")';}
-  },200);
+  setTimeout(initCountdown,100);
+  setTimeout(initWatermark,300);
 });
 </script>
 
