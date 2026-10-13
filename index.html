@@ -1030,4 +1030,10 @@ window.addEventListener('DOMContentLoaded',function(){
 </nav>
 
 <div class="toast" id="toast"></div>
+<script>
+// Ejecutar al final del body — garantizado que el DOM existe
+setTimeout(initMogBanners,50);
+setTimeout(initCountdown,100);
+setTimeout(initWatermark,300);
+</script>
 
