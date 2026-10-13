@@ -455,9 +455,40 @@ function renderPartidos(){
 }
 
 var canchaExpanded={};
+var canchaHighlight=null;
 function toggleCancha(c){
   canchaExpanded[c]=!canchaExpanded[c];
   renderCanchas();
+}
+function verCanchaEnMapa(num,evt){
+  evt.stopPropagation();
+  canchaHighlight=String(num);
+  showTab('mapa');
+  // Esperar a que el mapa renderice, luego hacer highlight
+  setTimeout(function(){
+    renderMapa();
+    // Scroll al mapa en mobile
+    var mc=document.getElementById('mapaContainer');
+    if(mc)mc.scrollIntoView({behavior:'smooth',block:'center'});
+    // Mostrar tooltip automático
+    var pin=null;
+    for(var i=0;i<CANCHA_PINS.length;i++){if(CANCHA_PINS[i].num===num){pin=CANCHA_PINS[i];break;}}
+    if(pin){
+      var img=document.getElementById('mapaImg');
+      var container=document.getElementById('mapaContainer');
+      if(img&&container){
+        var cw=container.offsetWidth,ch=img.offsetHeight||container.offsetHeight;
+        var iw=img.naturalWidth,ih=img.naturalHeight;
+        var scale=Math.min(cw/iw,ch/ih);
+        var dw=iw*scale,dh=ih*scale;
+        var ox=(cw-dw)/2,oy=(ch-dh)/2;
+        var cx=ox+pin.x/100*dw;
+        var cy=oy+pin.y/100*dh;
+        showPinTooltip(num,Math.round(cx),Math.round(cy));
+      }
+    }
+    setTimeout(function(){canchaHighlight=null;renderMapa();},2500);
+  },150);
 }
 function renderCanchas(){
   var grid=document.getElementById('canchas-grid');var html='';
@@ -480,6 +511,7 @@ function renderCanchas(){
     html+='</div>';
     html+='<div style="display:flex;align-items:center;gap:8px;">';
     html+='<div style="font-size:12px;color:var(--muted);">'+totalPartidos+' partidos</div>';
+    html+='<button onclick="verCanchaEnMapa('+c+',event)" style="background:var(--accent-lo);border:1px solid var(--accent);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;color:var(--accent-hi);cursor:pointer;white-space:nowrap;">📍 Ver</button>';
     html+='<div style="font-size:18px;color:var(--muted);transition:transform .2s;'+(isExp?'transform:rotate(180deg)':'')+'">⌄</div>';
     html+='</div></div>';
     // Estado actual
@@ -580,12 +612,16 @@ function renderMapa(){
   CANCHA_PINS.forEach(function(pin){
     var cx=px(pin.x,dw,ox),cy=px(pin.y,dh,oy);
     var live=state.partidos.filter(function(p){return String(p.cancha)===String(pin.num)&&p.estado==='live';});
-    var color=live.length?'#22c55e':(pin.num===1?'#c8a84b':'#3b82f6');
+    var isHL=canchaHighlight===String(pin.num);
+    var color=isHL?'#f59e0b':live.length?'#22c55e':(pin.num===1?'#c8a84b':'#3b82f6');
+    var r=isHL?20:14;
     html+='<g class="mapa-pin" onclick="showPinTooltip('+pin.num+','+Math.round(cx)+','+Math.round(cy)+')">';
-    html+='<circle cx="'+cx+'" cy="'+cy+'" r="14" fill="'+color+'" stroke="#fff" stroke-width="1.5" opacity="0.92"/>';
-    html+='<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="10" font-weight="700" fill="#000" font-family="Inter,sans-serif">C'+pin.num+'</text>';
-    if(pin.num===1)html+='<text x="'+cx+'" y="'+(cy+26)+'" text-anchor="middle" font-size="8" fill="#c8a84b" font-weight="700" font-family="Inter,sans-serif">MOG</text>';
-    if(live.length)html+='<circle cx="'+(cx+12)+'" cy="'+(cy-12)+'" r="5" fill="#22c55e"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>';
+    // Anillo de highlight animado
+    if(isHL)html+='<circle cx="'+cx+'" cy="'+cy+'" r="28" fill="none" stroke="#f59e0b" stroke-width="3" opacity="0.6"><animate attributeName="r" values="20;32;20" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.6;0.1;0.6" dur="1s" repeatCount="indefinite"/></circle>';
+    html+='<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="'+color+'" stroke="#fff" stroke-width="'+(isHL?'2.5':'1.5')+'" opacity="0.95"/>';
+    html+='<text x="'+cx+'" y="'+(cy+4)+'" text-anchor="middle" font-size="'+(isHL?'12':'10')+'" font-weight="700" fill="'+(isHL?'#000':'#000')+'" font-family="Inter,sans-serif">C'+pin.num+'</text>';
+    if(pin.num===1)html+='<text x="'+cx+'" y="'+(cy+(isHL?32:26))+'" text-anchor="middle" font-size="8" fill="#c8a84b" font-weight="700" font-family="Inter,sans-serif">MOG</text>';
+    if(live.length&&!isHL)html+='<circle cx="'+(cx+12)+'" cy="'+(cy-12)+'" r="5" fill="#22c55e"><animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/></circle>';
     html+='</g>';
   });
   SERVICE_PINS.forEach(function(pin){
@@ -599,18 +635,39 @@ function renderMapa(){
 
 function showPinTooltip(num,cx,cy){
   var tt=document.getElementById('mapaTooltip');
-  var live=state.partidos.filter(function(p){return String(p.cancha)===String(num)&&p.estado==='live';});
-  var sp=num===1?'<div style="color:#c8a84b;font-weight:700;font-size:12px;">🤝 MOG SUPPLY</div>':'';
-  var content='<strong>Cancha '+num+(num===1?' Mog Supply':'')+'</strong>'+sp;
-  if(live.length)content+='<div style="margin-top:6px;font-size:12px;"><span style="color:#22c55e">● EN VIVO</span><br>'+live[0].local+' vs '+live[0].visitante+'<br><span style="font-size:18px;font-weight:700;">'+(live[0].score_local||0)+' – '+(live[0].score_visit||0)+'</span></div>';
-  else content+='<div style="margin-top:6px;font-size:12px;color:#8b949e;">Sin partido en curso</div>';
+  var todos=state.partidos.filter(function(p){return String(p.cancha)===String(num);});
+  var live=todos.filter(function(p){return p.estado==='live';});
+  var prox=todos.filter(function(p){return p.estado==='proximo';});
+  var fin=todos.filter(function(p){return p.estado==='finalizado';});
+  var sp=num===1?'<div style="color:#c8a84b;font-weight:700;font-size:11px;margin-top:2px;">🤝 MOG SUPPLY</div>':'';
+  var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
+  var content='<strong style="font-size:14px;">Cancha '+num+'</strong>'+sp;
+  content+='<div style="font-size:11px;color:#8b949e;margin-top:2px;">'+todos.length+' partidos en total</div>';
+  if(live.length){
+    content+='<div style="margin-top:8px;padding:6px 8px;background:rgba(34,197,94,.15);border-radius:6px;border:1px solid #22c55e;">';
+    content+='<div style="font-size:11px;color:#22c55e;font-weight:700;">● EN VIVO</div>';
+    content+='<div style="font-size:12px;font-weight:600;margin-top:3px;">'+live[0].local+' vs '+live[0].visitante+'</div>';
+    content+='<div style="font-size:18px;font-weight:700;">'+(live[0].score_local||0)+' – '+(live[0].score_visit||0)+'</div>';
+    content+='</div>';
+  }
+  if(prox.length){
+    content+='<div style="margin-top:6px;font-size:11px;color:#8b949e;">Próximo:</div>';
+    content+='<div style="font-size:12px;font-weight:600;color:#eceef2;">'+prox[0].local+' vs '+prox[0].visitante+'</div>';
+    content+='<div style="font-size:11px;color:'+(catColors[prox[0].cat]||'#8b949e')+';">'+( prox[0].cat||'')+' · '+(prox[0].hora||'')+'</div>';
+  }
+  if(!live.length&&!prox.length&&fin.length){
+    content+='<div style="margin-top:6px;font-size:11px;color:#22c55e;">✓ Jornada finalizada</div>';
+  }
+  if(!todos.length)content+='<div style="margin-top:6px;font-size:11px;color:#8b949e;">Sin partidos asignados</div>';
   tt.innerHTML=content;
   var container=document.getElementById('mapaContainer');
   var cw=container.offsetWidth,ch=container.offsetHeight;
-  tt.style.left=Math.min(cx,cw-180)+'px';
-  tt.style.top=(cy-10>80?cy-80:cy+20)+'px';
+  var left=cx+10;if(left+210>cw)left=cx-220;
+  var top=cy-20;if(top<10)top=cy+20;if(top+140>ch)top=ch-150;
+  tt.style.left=Math.max(6,left)+'px';
+  tt.style.top=Math.max(6,top)+'px';
   tt.style.display='block';
-  setTimeout(function(){tt.style.display='none';},3000);
+  setTimeout(function(){tt.style.display='none';},4000);
 }
 
 function renderGastroPublic(){
