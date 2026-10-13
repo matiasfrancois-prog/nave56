@@ -454,17 +454,99 @@ function renderPartidos(){
   list.innerHTML=html;
 }
 
+var canchaExpanded={};
+function toggleCancha(c){
+  canchaExpanded[c]=!canchaExpanded[c];
+  renderCanchas();
+}
 function renderCanchas(){
   var grid=document.getElementById('canchas-grid');var html='';
+  var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
   for(var c=1;c<=7;c++){
     var cs=String(c);
-    var live=state.partidos.filter(function(p){return String(p.cancha)===cs&&p.estado==='live';});
+    var todos=state.partidos.filter(function(p){return String(p.cancha)===cs;});
+    var live=todos.filter(function(p){return p.estado==='live';});
+    var fin=todos.filter(function(p){return p.estado==='finalizado';});
+    var prox=todos.filter(function(p){return p.estado==='proximo';});
     var sp=sponsorCanchas[cs];
-    html+='<div class="cancha-card '+(live.length?'live':'')+'">';
+    var isExp=canchaExpanded[cs]||false;
+    var totalPartidos=todos.length;
+    html+='<div class="cancha-card '+(live.length?'live':'')+'" style="cursor:pointer;" onclick="toggleCancha(\''+cs+'\')">';
+    // Header
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;">';
+    html+='<div>';
     if(sp)html+='<div class="cancha-sponsor-badge">🤝 '+sp+'</div>';
-    html+='<div class="cancha-num">Cancha '+c+(c===1?' Mog Supply':'')+'</div>';
-    if(live.length){html+='<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);"><div><span class="live-dot"></span><strong>EN VIVO</strong></div><div style="font-weight:600;margin-top:6px;">'+live[0].local+' vs '+live[0].visitante+'</div><div style="font-size:24px;font-weight:700;">'+(live[0].score_local||0)+' – '+(live[0].score_visit||0)+'</div></div>';}
-    else html+='<div class="partido-meta" style="margin-top:8px;">Sin partido en curso</div>';
+    html+='<div class="cancha-num">Cancha '+c+(c===1?' · Mog Supply':'')+'</div>';
+    html+='</div>';
+    html+='<div style="display:flex;align-items:center;gap:8px;">';
+    html+='<div style="font-size:12px;color:var(--muted);">'+totalPartidos+' partidos</div>';
+    html+='<div style="font-size:18px;color:var(--muted);transition:transform .2s;'+(isExp?'transform:rotate(180deg)':'')+'">⌄</div>';
+    html+='</div></div>';
+    // Estado actual
+    if(live.length){
+      html+='<div style="margin-top:10px;padding:10px 12px;background:var(--live-glow);border-radius:8px;border:1px solid var(--green);">';
+      html+='<div style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span><strong style="font-size:13px;color:var(--green);">EN VIVO</strong>';
+      if(live[0].cat)html+='<span style="font-size:11px;font-weight:700;color:'+( catColors[live[0].cat]||'var(--muted)')+';">'+live[0].cat+'</span>';
+      html+='</div>';
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
+      html+='<div style="font-weight:600;font-size:13px;">'+live[0].local+'</div>';
+      html+='<div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;">'+(live[0].score_local||0)+' – '+(live[0].score_visit||0)+'</div>';
+      html+='<div style="font-weight:600;font-size:13px;text-align:right;">'+live[0].visitante+'</div>';
+      html+='</div></div>';
+    } else if(prox.length){
+      html+='<div style="margin-top:8px;font-size:13px;color:var(--muted);">Próx: <strong style="color:var(--fg);">'+prox[0].local+' vs '+prox[0].visitante+'</strong> <span style="color:var(--accent);">'+prox[0].hora+'</span></div>';
+    } else if(fin.length===totalPartidos&&totalPartidos>0){
+      html+='<div style="margin-top:8px;font-size:12px;color:var(--green);">✓ Jornada finalizada</div>';
+    } else {
+      html+='<div style="margin-top:8px;font-size:12px;color:var(--muted);">Sin partidos asignados</div>';
+    }
+    // Panel expandido
+    if(isExp&&totalPartidos>0){
+      html+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px;" onclick="event.stopPropagation()">';
+      // Finalizados
+      if(fin.length){
+        html+='<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:2px;">Jugados</div>';
+        fin.forEach(function(p){
+          var cc=catColors[p.cat]||'var(--muted)';
+          html+='<div style="background:var(--bg);border-radius:7px;padding:8px 10px;border:1px solid var(--border);opacity:.75;">';
+          html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+          html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
+          html+='<div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 8px;">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
+          html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
+          html+='</div>';
+          html+='<div style="font-size:10px;margin-top:3px;color:var(--muted);">Día '+p.dia+' · '+(p.hora||'')+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
+          html+='</div>';
+        });
+      }
+      // En vivo
+      live.forEach(function(p){
+        var cc=catColors[p.cat]||'var(--muted)';
+        html+='<div style="background:var(--live-glow);border-radius:7px;padding:8px 10px;border:1px solid var(--green);">';
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+        html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
+        html+='<div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 8px;">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
+        html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
+        html+='</div>';
+        html+='<div style="font-size:10px;margin-top:3px;color:var(--green);"><span class="live-dot" style="width:5px;height:5px;"></span> EN VIVO · '+(p.hora||'')+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
+        html+='</div>';
+      });
+      // Próximos
+      if(prox.length){
+        html+='<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:4px 0 2px;">Próximos</div>';
+        prox.forEach(function(p){
+          var cc=catColors[p.cat]||'var(--muted)';
+          html+='<div style="background:var(--bg);border-radius:7px;padding:8px 10px;border:1px solid var(--border);">';
+          html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
+          html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
+          html+='<div style="font-size:12px;color:var(--accent);font-weight:600;padding:0 8px;">'+(p.hora||'--')+'</div>';
+          html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
+          html+='</div>';
+          html+='<div style="font-size:10px;margin-top:3px;color:var(--muted);">Día '+p.dia+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
+          html+='</div>';
+        });
+      }
+      html+='</div>';
+    }
     html+='</div>';
   }
   grid.innerHTML=html;
