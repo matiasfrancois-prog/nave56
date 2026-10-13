@@ -305,25 +305,71 @@ function renderAgrupaciones(){
   grid.innerHTML=html;
 }
 
+// Categorías: A=Competitivo, B=Recreativo, C=Super Veteranos
+// INVITACION 70 y CONDORES XV → solo B confirmado
+// Resto: A+B por defecto; C pendiente de confirmación (marcado con c_pendiente)
 var EQUIPOS_DEFAULT=[
-  {nombre:'ALACRANES',cat:'Veteranos'},{nombre:'ALBATROS',cat:'Veteranos'},
-  {nombre:'AÑEJOS XV',cat:'Veteranos'},{nombre:'AVARCA',cat:'Veteranos'},
-  {nombre:'BICHOS CANASTOS',cat:'Veteranos'},{nombre:'CHAMIGOS',cat:'Veteranos'},
-  {nombre:'CHOROI',cat:'Veteranos'},{nombre:'CHUPAT',cat:'Veteranos'},
-  {nombre:'CONDORES XV',cat:'Veteranos'},{nombre:'DORADOS',cat:'Veteranos'},
-  {nombre:'FORMOBICHOS',cat:'Veteranos'},{nombre:'INVITACION 70',cat:'Veteranos'},
-  {nombre:'LOS PICHIS',cat:'Veteranos'},
-  {nombre:'OLD VIRGINS',cat:'Veteranos'},{nombre:'PLAGA',cat:'Veteranos'},
-  {nombre:'RETOBAOS',cat:'Veteranos'},{nombre:'SIRIRI',cat:'Veteranos'},
-  {nombre:'TORTUGAS',cat:'Veteranos'},{nombre:'UVA',cat:'Veteranos'},
-  {nombre:'UVASAL',cat:'Veteranos'},{nombre:'VARBA',cat:'Veteranos'},
-  {nombre:'VERRACOS',cat:'Veteranos'},{nombre:'VIEJOS GUANACOS',cat:'Veteranos'},
-  {nombre:'VIKINGOS',cat:'Veteranos'},{nombre:'VINOS',cat:'Veteranos'},
-  {nombre:'VIZCACHONES',cat:'Veteranos'},{nombre:'YAGUARETE',cat:'Veteranos'}
+  {nombre:'ALACRANES A',cat:'A'},{nombre:'ALACRANES B',cat:'B'},{nombre:'ALACRANES C',cat:'C',c_pendiente:true},
+  {nombre:'ALBATROS A',cat:'A'},{nombre:'ALBATROS B',cat:'B'},{nombre:'ALBATROS C',cat:'C',c_pendiente:true},
+  {nombre:'AÑEJOS XV A',cat:'A'},{nombre:'AÑEJOS XV B',cat:'B'},
+  {nombre:'BICHOS CANASTOS A',cat:'A'},{nombre:'BICHOS CANASTOS B',cat:'B'},{nombre:'BICHOS CANASTOS C',cat:'C',c_pendiente:true},
+  {nombre:'CHAMIGOS A',cat:'A'},{nombre:'CHAMIGOS B',cat:'B'},{nombre:'CHAMIGOS C',cat:'C',c_pendiente:true},
+  {nombre:'CHOROI A',cat:'A'},{nombre:'CHOROI B',cat:'B'},
+  {nombre:'CHUPAT A',cat:'A'},{nombre:'CHUPAT B',cat:'B'},{nombre:'CHUPAT C',cat:'C',c_pendiente:true},
+  {nombre:'CONDORES XV B',cat:'B'},
+  {nombre:'DORADOS A',cat:'A'},{nombre:'DORADOS B',cat:'B'},{nombre:'DORADOS C',cat:'C',c_pendiente:true},
+  {nombre:'FORMOBICHOS A',cat:'A'},{nombre:'FORMOBICHOS B',cat:'B'},
+  {nombre:'INVITACION 70 B',cat:'B'},
+  {nombre:'LOS PICHIS A',cat:'A'},{nombre:'LOS PICHIS B',cat:'B'},{nombre:'LOS PICHIS C',cat:'C',c_pendiente:true},
+  {nombre:'OLD VIRGINS A',cat:'A'},{nombre:'OLD VIRGINS B',cat:'B'},{nombre:'OLD VIRGINS C',cat:'C',c_pendiente:true},
+  {nombre:'PLAGA A',cat:'A'},{nombre:'PLAGA B',cat:'B'},
+  {nombre:'RETOBAOS A',cat:'A'},{nombre:'RETOBAOS B',cat:'B'},
+  {nombre:'SIRIRI A',cat:'A'},{nombre:'SIRIRI B',cat:'B'},{nombre:'SIRIRI C',cat:'C',c_pendiente:true},
+  {nombre:'TORTUGAS A',cat:'A'},{nombre:'TORTUGAS B',cat:'B'},
+  {nombre:'UVA A',cat:'A'},{nombre:'UVA B',cat:'B'},{nombre:'UVA C',cat:'C',c_pendiente:true},
+  {nombre:'UVASAL A',cat:'A'},{nombre:'UVASAL B',cat:'B'},
+  {nombre:'VARBA A',cat:'A'},{nombre:'VARBA B',cat:'B'},{nombre:'VARBA C',cat:'C',c_pendiente:true},
+  {nombre:'VERRACOS A',cat:'A'},{nombre:'VERRACOS B',cat:'B'},
+  {nombre:'VIEJOS GUANACOS A',cat:'A'},{nombre:'VIEJOS GUANACOS B',cat:'B'},{nombre:'VIEJOS GUANACOS C',cat:'C',c_pendiente:true},
+  {nombre:'VIKINGOS A',cat:'A'},{nombre:'VIKINGOS B',cat:'B'},
+  {nombre:'VINOS A',cat:'A'},{nombre:'VINOS B',cat:'B'},
+  {nombre:'VIZCACHONES A',cat:'A'},{nombre:'VIZCACHONES B',cat:'B'},
+  {nombre:'YAGUARETE A',cat:'A'},{nombre:'YAGUARETE B',cat:'B'}
+];
+// Fixture de ejemplo – será reemplazado con datos reales
+var PARTIDOS_DEFAULT=[
+  // DÍA 1 – Sábado 21 Nov — Categoría A (Competitivo)
+  {local:'ALACRANES A',visitante:'VARBA A',cancha:1,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'CHAMIGOS A',visitante:'DORADOS A',cancha:2,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'CHOROI A',visitante:'SIRIRI A',cancha:3,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'BICHOS CANASTOS A',visitante:'PLAGA A',cancha:4,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  // DÍA 1 – Categoría B (Recreativo)
+  {local:'ALACRANES B',visitante:'CONDORES XV B',cancha:5,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  {local:'INVITACION 70 B',visitante:'FORMOBICHOS B',cancha:6,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  {local:'AÑEJOS XV B',visitante:'CHOROI B',cancha:7,dia:1,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  // DÍA 1 – Segunda ronda A
+  {local:'VARBA A',visitante:'CHAMIGOS A',cancha:1,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'DORADOS A',visitante:'SIRIRI A',cancha:2,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'PLAGA A',visitante:'ALACRANES A',cancha:3,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  // DÍA 1 – Segunda ronda B
+  {local:'FORMOBICHOS B',visitante:'AÑEJOS XV B',cancha:4,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  {local:'VINOS B',visitante:'INVITACION 70 B',cancha:5,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  // DÍA 1 – Categoría C (Super Veteranos)
+  {local:'VARBA C',visitante:'ALACRANES C',cancha:6,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'C'},
+  {local:'CHAMIGOS C',visitante:'DORADOS C',cancha:7,dia:1,hora:'10:30',estado:'proximo',score_local:0,score_visit:0,cat:'C'},
+  // DÍA 2 – Domingo 22 Nov — Cuartos/Semis A
+  {local:'1° Zona 1 A',visitante:'2° Zona 2 A',cancha:1,dia:2,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'1° Zona 2 A',visitante:'2° Zona 1 A',cancha:2,dia:2,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'1° Zona 1 B',visitante:'2° Zona 2 B',cancha:3,dia:2,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  {local:'1° Zona 1 C',visitante:'2° Zona 2 C',cancha:4,dia:2,hora:'09:00',estado:'proximo',score_local:0,score_visit:0,cat:'C'},
+  // DÍA 2 – Finales
+  {local:'Semi 1 A',visitante:'Semi 2 A',cancha:1,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'A'},
+  {local:'Final Zona B',visitante:'Final Zona B2',cancha:2,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
+  {local:'Final Super Vet',visitante:'Final Super Vet 2',cancha:3,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'C'},
 ];
 var state={partidos:[],equipos:[],gastro:[],sponsors:[]};
 
-function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();}}
+function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);else state.partidos=PARTIDOS_DEFAULT.slice();if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
 function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));}catch(e){}}
 
 function showTab(name){
@@ -374,23 +420,35 @@ function renderPartidos(){
     if(currentFilter==='dia1')return p.dia==1;
     if(currentFilter==='dia2')return p.dia==2;
     if(currentFilter==='live')return p.estado==='live';
+    if(currentFilter==='catA')return p.cat==='A';
+    if(currentFilter==='catB')return p.cat==='B';
+    if(currentFilter==='catC')return p.cat==='C';
     if(currentFilter.startsWith('c'))return String(p.cancha)===currentFilter.slice(1);
     return true;
   });
   document.getElementById('stat-equipos').textContent=state.equipos.length;
   document.getElementById('stat-live').textContent=state.partidos.filter(function(p){return p.estado==='live';}).length;
   if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos para este filtro</p></div>';return;}
-  filtered.sort(function(a,b){return a.hora>b.hora?1:-1;});
+  filtered.sort(function(a,b){if(a.dia!==b.dia)return a.dia-b.dia;return a.hora>b.hora?1:-1;});
+  var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
+  var catLabels={'A':'A · Competitivo','B':'B · Recreativo','C':'C · Super Vet'};
   var html='';
   filtered.forEach(function(p){
     var bc=p.estado==='live'?'badge-live':p.estado==='finalizado'?'badge-fin':'badge-prox';
     var bt=p.estado==='live'?'● EN VIVO':p.estado==='finalizado'?'FIN':p.hora||'PRÓX';
     var cn='Cancha '+p.cancha;if(sponsorCanchas[String(p.cancha)])cn+=' – '+sponsorCanchas[String(p.cancha)];
+    var catColor=catColors[p.cat]||'var(--muted)';
+    var catLabel=catLabels[p.cat]||p.cat||'';
+    var diaLabel=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
     html+='<div class="partido-card '+(p.estado==='live'?'live':p.estado==='finalizado'?'finalizado':'')+'">';
     html+='<div class="team-name team-left">'+(p.local||'?')+'</div>';
-    html+='<div class="partido-center"><span class="badge '+bc+'">'+bt+'</span>';
+    html+='<div class="partido-center">';
+    html+='<span style="font-size:10px;font-weight:700;color:'+catColor+';letter-spacing:.06em;text-transform:uppercase;">'+catLabel+'</span>';
+    html+='<span class="badge '+bc+'">'+bt+'</span>';
     if(p.estado!=='proximo')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-    html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span></div></div>';
+    html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
+    if(diaLabel)html+=' <span style="font-size:11px;color:var(--muted);">'+diaLabel+'</span>';
+    html+='</div></div>';
     html+='<div class="team-name team-right">'+(p.visitante||'?')+'</div></div>';
   });
   list.innerHTML=html;
@@ -515,8 +573,9 @@ function addPartido(){
   var dia=document.getElementById('p-dia').value;
   var hora=document.getElementById('p-hora').value;
   var estado=document.getElementById('p-estado').value;
+  var cat=document.getElementById('p-cat')?document.getElementById('p-cat').value:'A';
   if(!local||!visit||local===visit){showToast('Seleccioná dos equipos distintos');return;}
-  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0});
+  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
 
@@ -748,16 +807,19 @@ window.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="filter-row">
     <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('dia1',this)">Día 1 – Sáb 21</button>
-    <button class="filter-btn" onclick="setFilter('dia2',this)">Día 2 – Dom 22</button>
+    <button class="filter-btn" onclick="setFilter('dia1',this)">📅 Sáb 21</button>
+    <button class="filter-btn" onclick="setFilter('dia2',this)">📅 Dom 22</button>
     <button class="filter-btn live-btn" onclick="setFilter('live',this)">🟢 En Vivo</button>
-    <button class="filter-btn" onclick="setFilter('c1',this)">Cancha 1</button>
-    <button class="filter-btn" onclick="setFilter('c2',this)">Cancha 2</button>
-    <button class="filter-btn" onclick="setFilter('c3',this)">Cancha 3</button>
-    <button class="filter-btn" onclick="setFilter('c4',this)">Cancha 4</button>
-    <button class="filter-btn" onclick="setFilter('c5',this)">Cancha 5</button>
-    <button class="filter-btn" onclick="setFilter('c6',this)">Cancha 6</button>
-    <button class="filter-btn" onclick="setFilter('c7',this)">Cancha 7</button>
+    <button class="filter-btn" style="border-color:#b8963e;color:#b8963e;" onclick="setFilter('catA',this)">🏆 A · Competitivo</button>
+    <button class="filter-btn" style="border-color:#4b8ef0;color:#4b8ef0;" onclick="setFilter('catB',this)">🎉 B · Recreativo</button>
+    <button class="filter-btn" style="border-color:#9b6fd4;color:#9b6fd4;" onclick="setFilter('catC',this)">⭐ C · Super Vet</button>
+    <button class="filter-btn" onclick="setFilter('c1',this)">C1</button>
+    <button class="filter-btn" onclick="setFilter('c2',this)">C2</button>
+    <button class="filter-btn" onclick="setFilter('c3',this)">C3</button>
+    <button class="filter-btn" onclick="setFilter('c4',this)">C4</button>
+    <button class="filter-btn" onclick="setFilter('c5',this)">C5</button>
+    <button class="filter-btn" onclick="setFilter('c6',this)">C6</button>
+    <button class="filter-btn" onclick="setFilter('c7',this)">C7</button>
   </div>
   <div class="partidos-list" id="partidos-list">
     <div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos cargados aún</p></div>
@@ -824,7 +886,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <div class="admin-section-title">Equipos</div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Nombre</label><input type="text" id="eq-nombre" placeholder="Ej: CUBA RC"></div>
-      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option>M35</option><option>M40</option><option>M45</option><option>M50</option><option>M55</option><option>M60</option></select></div>
+      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Veteranos</option></select></div>
     </div>
     <button class="btn-save" onclick="addEquipo()" style="margin-bottom:14px;">+ Agregar Equipo</button>
     <div class="admin-list" id="admin-equipos-list"></div>
@@ -838,6 +900,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Día</label><select id="p-dia"><option value="1">Sábado 21</option><option value="2">Domingo 22</option></select></div>
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
+      <div class="form-field"><label>División</label><select id="p-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Vet</option></select></div>
     </div>
     <button class="btn-save" onclick="addPartido()" style="margin-bottom:14px;">+ Agregar Partido</button>
     <div id="admin-partidos-list"></div>
