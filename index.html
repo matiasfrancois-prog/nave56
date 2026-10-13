@@ -369,10 +369,11 @@ var PARTIDOS_DEFAULT=[
   {local:'Final Zona B',visitante:'Final Zona B2',cancha:2,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
   {local:'Final Super Vet',visitante:'Final Super Vet 2',cancha:3,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'C'},
 ];
-var state={partidos:[],equipos:[],gastro:[],sponsors:[]};
+var REFEREES_DEFAULT=['Alejandro Gómez','Bruno Salinas','Carlos Méndez','Diego Torres','Eduardo Ruiz','Federico López','Gastón Herrera','Hernán Castro','Ignacio Peralta','Juan Martínez','Lucas Fernández','Marcos Díaz','Nicolás Ramírez','Pablo García','Rodrigo Vega'];
+var state={partidos:[],equipos:[],gastro:[],sponsors:[],referees:[]};
 
-function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);else state.partidos=PARTIDOS_DEFAULT.slice();if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
-function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));}catch(e){}}
+function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);else state.partidos=PARTIDOS_DEFAULT.slice();if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
+function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));localStorage.setItem('nave56_rf',JSON.stringify(state.referees));}catch(e){}}
 
 function showTab(name){
   var panels=document.querySelectorAll('.tab-panel');
@@ -399,7 +400,7 @@ function openAdmin(){
     var nav=document.querySelector('.sidebar-nav');
     var exists=document.getElementById('tab-admin-nav');
     if(!exists){var btn=document.createElement('button');btn.className='nav-tab';btn.id='tab-admin-nav';btn.setAttribute('onclick',"showTab('admin')");btn.innerHTML='<span class="tab-icon">⚙</span><span class="tab-label">Admin</span>';nav.appendChild(btn);}
-    fillEquiposList();renderAdminPartidos();renderGastro();renderSponsors();
+    fillEquiposList();fillRefereeList();renderAdminPartidos();renderGastro();renderSponsors();
   }
   showTab('admin');
 }
@@ -709,6 +710,43 @@ function fillEquiposList(){
 
 function delEquipo(i){state.equipos.splice(i,1);saveState();fillEquiposList();renderPartidos();}
 
+function fillRefereeList(){
+  var selects=['p-referee','p-touch1','p-touch2'];
+  selects.forEach(function(id){
+    var sel=document.getElementById(id);
+    if(!sel)return;
+    var isRef=(id==='p-referee');
+    var cur=sel.value;
+    var opts=isRef?'<option value="">-- Sin asignar --</option>':'<option value="">-- Sin asignar --</option>';
+    state.referees.forEach(function(r){opts+='<option value="'+r+'"'+(cur===r?' selected':'')+'>'+r+'</option>';});
+    sel.innerHTML=opts;
+  });
+  // También actualizar la lista de árbitros en admin
+  var alist=document.getElementById('admin-referees-list');
+  if(alist){
+    if(!state.referees.length){alist.innerHTML='<div style="color:var(--muted);font-size:13px;">Sin árbitros</div>';}
+    else{
+      var html='';
+      state.referees.forEach(function(r,i){
+        html+='<div class="admin-list-item"><div class="admin-list-item-info"><div class="admin-list-item-name">'+r+'</div></div><button class="btn-danger" onclick="delReferee('+i+')">✕</button></div>';
+      });
+      alist.innerHTML=html;
+    }
+  }
+}
+function delReferee(i){state.referees.splice(i,1);saveState();fillRefereeList();}
+function addReferee(){
+  var inp=document.getElementById('rf-nombre');
+  if(!inp)return;
+  var nombre=inp.value.trim();
+  if(!nombre){showToast('Ingresá el nombre del árbitro');return;}
+  if(state.referees.indexOf(nombre)!==-1){showToast('Ya existe ese árbitro');return;}
+  state.referees.push(nombre);
+  saveState();fillRefereeList();
+  inp.value='';
+  showToast('Árbitro agregado ✓');
+}
+
 function addPartido(){
   var local=document.getElementById('p-local').value;
   var visit=document.getElementById('p-visit').value;
@@ -717,9 +755,11 @@ function addPartido(){
   var hora=document.getElementById('p-hora').value;
   var estado=document.getElementById('p-estado').value;
   var cat=document.getElementById('p-cat')?document.getElementById('p-cat').value:'A';
-  var referee=document.getElementById('p-referee')?document.getElementById('p-referee').value.trim():'';
+  var referee=document.getElementById('p-referee')?document.getElementById('p-referee').value:'';
+  var touch1=document.getElementById('p-touch1')?document.getElementById('p-touch1').value:'';
+  var touch2=document.getElementById('p-touch2')?document.getElementById('p-touch2').value:'';
   if(!local||!visit||local===visit){showToast('Seleccioná dos equipos distintos');return;}
-  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,referee:referee});
+  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
 
@@ -728,20 +768,68 @@ function renderAdminPartidos(){
   if(!state.partidos.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;">Sin partidos</div>';return;}
   var html='';
   state.partidos.forEach(function(p,i){
+    var sl=p.score_local||0;var sv=p.score_visit||0;
+    var tarjetas=p.tarjetas||[];
     html+='<div class="admin-partido-row">';
-    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><div style="font-weight:600;">'+p.local+' vs '+p.visitante+'</div><button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
-    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+'</div>';
-    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">🏳 Referee: <input type="text" value="'+(p.referee||'')+'" placeholder="—" style="background:var(--card);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:12px;color:var(--fg);width:160px;" onchange="updateReferee('+i+',this.value)"></div>';
-    html+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">';
-    html+='<div style="display:flex;align-items:center;gap:8px;"><input class="score-input" type="number" min="0" value="'+(p.score_local||0)+'" onchange="updateScore('+i+',\'local\',this.value)"><span style="font-size:18px;">–</span><input class="score-input" type="number" min="0" value="'+(p.score_visit||0)+'" onchange="updateScore('+i+',\'visit\',this.value)"></div>';
-    var opts=['proximo','live','finalizado'].map(function(e){return'<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+e+'</option>';}).join('');
-    html+='<select style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:6px;color:var(--fg);font-size:13px;" onchange="updateEstado('+i+',this.value)">'+opts+'</select>';
+    html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'</div>';
+    html+='<button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
+    html+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+(p.referee?' · 🏳 '+p.referee:'')+'</div>';
+    var opts=['proximo','live','finalizado'].map(function(e){var labs={proximo:'Próximo',live:'● En Vivo',finalizado:'Finalizado'};return'<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+labs[e]+'</option>';}).join('');
+    html+='<select style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--fg);font-size:12px;margin-bottom:10px;width:100%;" onchange="updateEstado('+i+',this.value)">'+opts+'</select>';
+    html+='<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px;">';
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
+    html+='<div style="text-align:center;flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600;">'+p.local+'</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px;">'+sl+'</div></div>';
+    html+='<div style="font-size:20px;color:var(--muted);padding:0 8px;">–</div>';
+    html+='<div style="text-align:center;flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600;">'+p.visitante+'</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px;">'+sv+'</div></div>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">';
+    html+='<div style="font-size:10px;color:var(--muted);width:100%;font-weight:600;margin-bottom:2px;">'+p.local+'</div>';
+    html+='<button onclick="addPoints('+i+',\'local\',5)" style="flex:1;background:#2d6a2d;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Try<br><span style="font-size:10px;font-weight:400;opacity:.8">+5</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',2)" style="flex:1;background:#1a5a8a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Conv<br><span style="font-size:10px;font-weight:400;opacity:.8">+2</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Penal<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;background:#7a5a2a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Drop<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',-1)" style="background:#555;color:#fff;border:none;border-radius:6px;padding:6px 8px;font-size:12px;cursor:pointer;" title="Deshacer">↩</button>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">';
+    html+='<div style="font-size:10px;color:var(--muted);width:100%;font-weight:600;margin-bottom:2px;">'+p.visitante+'</div>';
+    html+='<button onclick="addPoints('+i+',\'visit\',5)" style="flex:1;background:#2d6a2d;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Try<br><span style="font-size:10px;font-weight:400;opacity:.8">+5</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',2)" style="flex:1;background:#1a5a8a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Conv<br><span style="font-size:10px;font-weight:400;opacity:.8">+2</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Penal<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;background:#7a5a2a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Drop<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',-1)" style="background:#555;color:#fff;border:none;border-radius:6px;padding:6px 8px;font-size:12px;cursor:pointer;" title="Deshacer">↩</button>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:4px;flex-wrap:wrap;">';
+    html+='<button onclick="addCard('+i+',\'local\',\'🟡\')" style="flex:1;background:#a08010;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🟡<br>'+p.local+'</button>';
+    html+='<button onclick="addCard('+i+',\'local\',\'🔴\')" style="flex:1;background:#8a1a1a;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🔴<br>'+p.local+'</button>';
+    html+='<button onclick="addCard('+i+',\'visit\',\'🟡\')" style="flex:1;background:#a08010;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🟡<br>'+p.visitante+'</button>';
+    html+='<button onclick="addCard('+i+',\'visit\',\'🔴\')" style="flex:1;background:#8a1a1a;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🔴<br>'+p.visitante+'</button>';
+    html+='</div>';
+    if(tarjetas.length){
+      html+='<div style="margin-top:6px;font-size:11px;">';
+      tarjetas.forEach(function(t){html+='<span style="margin-right:6px;opacity:.8;">'+t.tipo+' '+t.equipo+' ('+t.hora+')</span>';});
+      html+='</div>';
+    }
     html+='</div></div>';
   });
   list.innerHTML=html;
 }
 
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();renderPartidos();renderMapa();}
+function addPoints(i,side,pts){
+  if(!state.partidos[i])return;
+  if(side==='local')state.partidos[i].score_local=(state.partidos[i].score_local||0)+pts;
+  else state.partidos[i].score_visit=(state.partidos[i].score_visit||0)+pts;
+  saveState();renderPartidos();renderMapa();renderAdminPartidos();
+}
+function addCard(i,side,tipo){
+  if(!state.partidos[i])return;
+  if(!state.partidos[i].tarjetas)state.partidos[i].tarjetas=[];
+  var equipo=side==='local'?state.partidos[i].local:state.partidos[i].visitante;
+  var t=new Date();var hora=t.getHours()+':'+('0'+t.getMinutes()).slice(-2);
+  state.partidos[i].tarjetas.push({equipo:equipo,side:side,tipo:tipo,hora:hora});
+  saveState();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
+}
 function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
@@ -824,6 +912,7 @@ function fetchSupabase(){
 }
 
 loadState();
+fillRefereeList();
 renderPartidos();
 renderCanchas();
 fetchSupabase();
@@ -892,6 +981,17 @@ window.addEventListener('DOMContentLoaded',function(){
 <div id="authModal" hidden></div>
 
 <div class="app-shell">
+<div id="admin-login-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:300px;max-width:90vw;text-align:center;">
+    <div style="font-size:32px;margin-bottom:12px;">🔒</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;">Panel Admin</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Ingresá la clave de acceso</div>
+    <input id="admin-pwd-input" type="password" placeholder="Clave" onkeydown="adminLoginKey(event)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);margin-bottom:8px;">
+    <div id="admin-pwd-error" style="display:none;color:#e55;font-size:12px;margin-bottom:8px;">Clave incorrecta</div>
+    <button onclick="submitAdminLogin()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:600;cursor:pointer;">Ingresar</button>
+    <button onclick="document.getElementById('admin-login-overlay').style.display='none'" style="width:100%;background:transparent;color:var(--muted);border:none;padding:8px;font-size:13px;cursor:pointer;margin-top:6px;">Cancelar</button>
+  </div>
+</div>
 <nav class="sidebar">
   <div class="sidebar-logo">
     <div class="logo-text">NAVE56</div>
@@ -1054,6 +1154,14 @@ window.addEventListener('DOMContentLoaded',function(){
     <div class="admin-list" id="admin-equipos-list"></div>
   </div>
   <div class="admin-section">
+    <div class="admin-section-title">Árbitros &amp; Jueces</div>
+    <div class="form-grid" style="margin-bottom:10px;">
+      <div class="form-field"><label>Nombre</label><input type="text" id="rf-nombre" placeholder="Ej: Carlos Méndez"></div>
+    </div>
+    <button class="btn-save" onclick="addReferee()" style="margin-bottom:14px;">+ Agregar Árbitro / Juez</button>
+    <div class="admin-list" id="admin-referees-list"></div>
+  </div>
+  <div class="admin-section">
     <div class="admin-section-title">Partidos</div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Local</label><select id="p-local"></select></div>
@@ -1063,7 +1171,9 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
       <div class="form-field"><label>División</label><select id="p-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Vet</option></select></div>
-      <div class="form-field"><label>Referee</label><input type="text" id="p-referee" placeholder="Nombre del árbitro"></div>
+      <div class="form-field"><label>Referee</label><select id="p-referee"><option value="">-- Sin asignar --</option></select></div>
+      <div class="form-field"><label>Juez Touch 1 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch1"><option value="">-- Sin asignar --</option></select></div>
+      <div class="form-field"><label>Juez Touch 2 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch2"><option value="">-- Sin asignar --</option></select></div>
     </div>
     <button class="btn-save" onclick="addPartido()" style="margin-bottom:14px;">+ Agregar Partido</button>
     <div id="admin-partidos-list"></div>
