@@ -477,7 +477,10 @@ function renderPartidos(){
     html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
     if(diaLabel)html+=' <span style="font-size:11px;color:var(--muted);">'+diaLabel+'</span>';
     html+='</div>';
-    html+='<div class="partido-referee">🏳 Referee: '+(p.referee||'<span style="opacity:.5">—</span>')+'</div>';
+    var touchInfo='';
+    if(p.touch1)touchInfo+=(touchInfo?' · ':'')+p.touch1;
+    if(p.touch2)touchInfo+=(touchInfo?' · ':'')+p.touch2;
+    html+='<div class="partido-referee">🏳 Referee: '+(p.referee||'<span style="opacity:.5">—</span>')+(touchInfo?' &nbsp;·&nbsp; Touch: '+touchInfo:'')+'</div>';
     html+='</div>';
     html+='<div class="team-name team-right">'+(p.visitante||'?')+'</div></div>';
   });
@@ -838,6 +841,10 @@ function renderAdminPartidos(){
     if(p.estado==='live'){
       html+='<button onclick="finalizarPartido('+i+')" style="width:100%;background:#2a7a2a;color:#fff;border:none;border-radius:6px;padding:7px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">✓ Finalizar Partido → mover a Historial</button>';
     }
+    // Botón revertir si está finalizado
+    if(p.estado==='finalizado'){
+      html+='<button onclick="revertirPartido('+i+')" style="width:100%;background:#7a3a2a;color:#fff;border:none;border-radius:6px;padding:7px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">↩ Revertir → volver al Fixture</button>';
+    }
 
     // Referee select
     var rfLocal='<select onchange="updatePartidoReferee('+i+',\'referee\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
@@ -935,6 +942,7 @@ function addCard(i,side,tipo){
 function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
 function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();}
 function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
+function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
 function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderAdminPartidos();showToast('Tarjeta eliminada');}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
