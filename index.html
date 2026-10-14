@@ -406,7 +406,29 @@ function openAdmin(){
   }
   showTab('admin');
 }
-function checkAuth(){openAdmin();}
+function checkAuth(){
+  var overlay=document.getElementById('admin-login-overlay');
+  if(overlay){overlay.style.display='flex';setTimeout(function(){document.getElementById('admin-user-input').focus();},50);return;}
+  openAdmin();
+}
+function submitAdminLogin(){
+  var user=document.getElementById('admin-user-input').value.trim();
+  var pwd=document.getElementById('admin-pwd-input').value;
+  var OK_USER='admin';var OK_PWD='nave56';
+  var err=document.getElementById('admin-pwd-error');
+  if(user===OK_USER&&pwd===OK_PWD){
+    document.getElementById('admin-login-overlay').style.display='none';
+    document.getElementById('admin-user-input').value='';
+    document.getElementById('admin-pwd-input').value='';
+    err.style.display='none';
+    openAdmin();
+  }else{
+    err.style.display='block';
+    document.getElementById('admin-pwd-input').value='';
+    document.getElementById('admin-user-input').focus();
+  }
+}
+function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
 
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
 
@@ -768,55 +790,111 @@ function addPartido(){
 function renderAdminPartidos(){
   var list=document.getElementById('admin-partidos-list');
   if(!state.partidos.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;">Sin partidos</div>';return;}
+  var rfOpts='<option value="">-- Sin asignar --</option>';
+  (state.referees||[]).forEach(function(r){rfOpts+='<option value="'+r+'">'+r+'</option>';});
   var html='';
   state.partidos.forEach(function(p,i){
     var sl=p.score_local||0;var sv=p.score_visit||0;
     var tarjetas=p.tarjetas||[];
+    var catColor=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
     html+='<div class="admin-partido-row">';
+    // Header fila
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-    html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'</div>';
+    html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'<span style="margin-left:8px;font-size:11px;background:'+catColor+';color:#fff;border-radius:4px;padding:2px 6px;">CAT '+p.cat+'</span></div>';
     html+='<button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
-    html+='<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">C'+p.cancha+' · Día '+p.dia+' · '+p.hora+(p.referee?' · 🏳 '+p.referee:'')+'</div>';
-    var opts=['proximo','live','finalizado'].map(function(e){var labs={proximo:'Próximo',live:'● En Vivo',finalizado:'Finalizado'};return'<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+labs[e]+'</option>';}).join('');
-    html+='<select style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--fg);font-size:12px;margin-bottom:10px;width:100%;" onchange="updateEstado('+i+',this.value)">'+opts+'</select>';
+    // Info horario
+    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">🕐 Día '+p.dia+' · '+p.hora+'  |  🏟 Cancha '+p.cancha+'</div>';
+
+    // Estado select
+    var estadoOpts=['proximo','live','finalizado'].map(function(e){
+      var labs={proximo:'Próximo',live:'● En Vivo',finalizado:'✓ Finalizado'};
+      return '<option value="'+e+'"'+(p.estado===e?' selected':'')+'>'+labs[e]+'</option>';
+    }).join('');
+    html+='<select style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--fg);font-size:12px;margin-bottom:8px;width:100%;" onchange="updateEstado('+i+',this.value)">'+estadoOpts+'</select>';
+
+    // Botón finalizar rápido si está en live
+    if(p.estado==='live'){
+      html+='<button onclick="finalizarPartido('+i+')" style="width:100%;background:#2a7a2a;color:#fff;border:none;border-radius:6px;padding:7px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:8px;">✓ Finalizar Partido → mover a Historial</button>';
+    }
+
+    // Referee select
+    var rfLocal='<select onchange="updatePartidoReferee('+i+',\'referee\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
+    rfLocal+='<option value="">-- Sin asignar --</option>';
+    (state.referees||[]).forEach(function(r){rfLocal+='<option value="'+r+'"'+(p.referee===r?' selected':'')+'>'+r+'</option>';});
+    rfLocal+='</select>';
+
+    var t1Local='<select onchange="updatePartidoReferee('+i+',\'touch1\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
+    t1Local+='<option value="">-- Opcional --</option>';
+    (state.referees||[]).forEach(function(r){t1Local+='<option value="'+r+'"'+(p.touch1===r?' selected':'')+'>'+r+'</option>';});
+    t1Local+='</select>';
+
+    var t2Local='<select onchange="updatePartidoReferee('+i+',\'touch2\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
+    t2Local+='<option value="">-- Opcional --</option>';
+    (state.referees||[]).forEach(function(r){t2Local+='<option value="'+r+'"'+(p.touch2===r?' selected':'')+'>'+r+'</option>';});
+    t2Local+='</select>';
+
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;font-size:11px;">';
+    html+='<div><div style="color:var(--muted);margin-bottom:2px;">🏳 Referee</div>'+rfLocal+'</div>';
+    html+='<div><div style="color:var(--muted);margin-bottom:2px;">Touch 1 (opt)</div>'+t1Local+'</div>';
+    html+='<div><div style="color:var(--muted);margin-bottom:2px;">Touch 2 (opt)</div>'+t2Local+'</div>';
+    html+='</div>';
+
+    // Score
     html+='<div style="background:var(--bg);border-radius:10px;padding:10px;margin-bottom:8px;">';
     html+='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">';
     html+='<div style="text-align:center;flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600;">'+p.local+'</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px;">'+sl+'</div></div>';
     html+='<div style="font-size:20px;color:var(--muted);padding:0 8px;">–</div>';
     html+='<div style="text-align:center;flex:1;"><div style="font-size:11px;color:var(--muted);margin-bottom:2px;font-weight:600;">'+p.visitante+'</div><div style="font-size:32px;font-weight:900;letter-spacing:-1px;">'+sv+'</div></div>';
     html+='</div>';
+
+    // Scoring buttons local
+    html+='<div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px;">'+p.local+'</div>';
     html+='<div style="display:flex;gap:4px;margin-bottom:6px;flex-wrap:wrap;">';
-    html+='<div style="font-size:10px;color:var(--muted);width:100%;font-weight:600;margin-bottom:2px;">'+p.local+'</div>';
-    html+='<button onclick="addPoints('+i+',\'local\',5)" style="flex:1;background:#2d6a2d;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Try<br><span style="font-size:10px;font-weight:400;opacity:.8">+5</span></button>';
-    html+='<button onclick="addPoints('+i+',\'local\',2)" style="flex:1;background:#1a5a8a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Conv<br><span style="font-size:10px;font-weight:400;opacity:.8">+2</span></button>';
-    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Penal<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
-    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;background:#7a5a2a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Drop<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
-    html+='<button onclick="addPoints('+i+',\'local\',-1)" style="background:#555;color:#fff;border:none;border-radius:6px;padding:6px 8px;font-size:12px;cursor:pointer;" title="Deshacer">↩</button>';
+    html+='<button onclick="addPoints('+i+',\'local\',5)" style="flex:1;min-width:50px;background:#2a6a2a;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Try<br><span style=\'font-size:10px;opacity:.8\'>+5</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',2)" style="flex:1;min-width:50px;background:#1a4fa0;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Conv<br><span style=\'font-size:10px;opacity:.8\'>+2</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;min-width:50px;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Penal<br><span style=\'font-size:10px;opacity:.8\'>+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',3)" style="flex:1;min-width:50px;background:#7a5a10;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Drop<br><span style=\'font-size:10px;opacity:.8\'>+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'local\',-1)" style="flex:0 0 36px;background:#555;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:13px;cursor:pointer;" title="Deshacer -1">↩</button>';
     html+='</div>';
+
+    // Scoring buttons visitante
+    html+='<div style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px;">'+p.visitante+'</div>';
     html+='<div style="display:flex;gap:4px;margin-bottom:8px;flex-wrap:wrap;">';
-    html+='<div style="font-size:10px;color:var(--muted);width:100%;font-weight:600;margin-bottom:2px;">'+p.visitante+'</div>';
-    html+='<button onclick="addPoints('+i+',\'visit\',5)" style="flex:1;background:#2d6a2d;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Try<br><span style="font-size:10px;font-weight:400;opacity:.8">+5</span></button>';
-    html+='<button onclick="addPoints('+i+',\'visit\',2)" style="flex:1;background:#1a5a8a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Conv<br><span style="font-size:10px;font-weight:400;opacity:.8">+2</span></button>';
-    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Penal<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
-    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;background:#7a5a2a;color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:12px;font-weight:600;cursor:pointer;">Drop<br><span style="font-size:10px;font-weight:400;opacity:.8">+3</span></button>';
-    html+='<button onclick="addPoints('+i+',\'visit\',-1)" style="background:#555;color:#fff;border:none;border-radius:6px;padding:6px 8px;font-size:12px;cursor:pointer;" title="Deshacer">↩</button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',5)" style="flex:1;min-width:50px;background:#2a6a2a;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Try<br><span style=\'font-size:10px;opacity:.8\'>+5</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',2)" style="flex:1;min-width:50px;background:#1a4fa0;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Conv<br><span style=\'font-size:10px;opacity:.8\'>+2</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;min-width:50px;background:#6a3a9a;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Penal<br><span style=\'font-size:10px;opacity:.8\'>+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',3)" style="flex:1;min-width:50px;background:#7a5a10;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:11px;font-weight:700;cursor:pointer;">Drop<br><span style=\'font-size:10px;opacity:.8\'>+3</span></button>';
+    html+='<button onclick="addPoints('+i+',\'visit\',-1)" style="flex:0 0 36px;background:#555;color:#fff;border:none;border-radius:6px;padding:8px 4px;font-size:13px;cursor:pointer;" title="Deshacer -1">↩</button>';
     html+='</div>';
-    html+='<div style="display:flex;gap:4px;flex-wrap:wrap;">';
-    html+='<button onclick="addCard('+i+',\'local\',\'🟡\')" style="flex:1;background:#a08010;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🟡<br>'+p.local+'</button>';
-    html+='<button onclick="addCard('+i+',\'local\',\'🔴\')" style="flex:1;background:#8a1a1a;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🔴<br>'+p.local+'</button>';
-    html+='<button onclick="addCard('+i+',\'visit\',\'🟡\')" style="flex:1;background:#a08010;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🟡<br>'+p.visitante+'</button>';
-    html+='<button onclick="addCard('+i+',\'visit\',\'🔴\')" style="flex:1;background:#8a1a1a;color:#fff;border:none;border-radius:6px;padding:5px 2px;font-size:11px;cursor:pointer;">🔴<br>'+p.visitante+'</button>';
+
+    // Tarjetas buttons
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px;">';
+    html+='<button onclick="addCard('+i+',\'local\',\'Amarilla\')" style="background:#8a7a00;color:#fff;border:none;border-radius:6px;padding:7px 4px;font-size:10px;font-weight:600;cursor:pointer;">🟡<br>'+p.local+'</button>';
+    html+='<button onclick="addCard('+i+',\'local\',\'Roja\')" style="background:#8a1010;color:#fff;border:none;border-radius:6px;padding:7px 4px;font-size:10px;font-weight:600;cursor:pointer;">🔴<br>'+p.local+'</button>';
+    html+='<button onclick="addCard('+i+',\'visit\',\'Amarilla\')" style="background:#8a7a00;color:#fff;border:none;border-radius:6px;padding:7px 4px;font-size:10px;font-weight:600;cursor:pointer;">🟡<br>'+p.visitante+'</button>';
+    html+='<button onclick="addCard('+i+',\'visit\',\'Roja\')" style="background:#8a1010;color:#fff;border:none;border-radius:6px;padding:7px 4px;font-size:10px;font-weight:600;cursor:pointer;">🔴<br>'+p.visitante+'</button>';
     html+='</div>';
+    html+='</div>';
+
+    // Log de tarjetas
     if(tarjetas.length){
       html+='<div style="margin-top:6px;font-size:11px;">';
-      tarjetas.forEach(function(t){html+='<span style="margin-right:6px;opacity:.8;">'+t.tipo+' '+t.equipo+' ('+t.hora+')</span>';});
+      html+='<div style="color:var(--muted);margin-bottom:4px;font-weight:600;">Tarjetas:</div>';
+      tarjetas.forEach(function(t,ti){
+        var col=t.tipo==='Roja'?'#c0392b':'#b8860b';
+        html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">';
+        html+='<span style="color:'+col+';font-weight:700;">'+(t.tipo==='Roja'?'🔴':'🟡')+' '+t.tipo+'</span>';
+        html+='<span>'+t.equipo+'</span>';
+        html+='<span style="color:var(--muted);">'+t.hora+'</span>';
+        html+='<button onclick="delCard('+i+','+ti+')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0;margin-left:auto;" title="Eliminar tarjeta">✕</button>';
+        html+='</div>';
+      });
       html+='</div>';
     }
-    html+='</div></div>';
+    html+='</div>';
   });
   list.innerHTML=html;
 }
-
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
   if(!state.partidos[i])return;
@@ -832,7 +910,10 @@ function addCard(i,side,tipo){
   state.partidos[i].tarjetas.push({equipo:equipo,side:side,tipo:tipo,hora:hora});
   saveState();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
 }
-function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();}
+function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
+function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();}
+function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
+function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderAdminPartidos();showToast('Tarjeta eliminada');}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
 
@@ -1088,8 +1169,9 @@ window.addEventListener('DOMContentLoaded',function(){
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:32px 28px;width:300px;max-width:90vw;text-align:center;">
     <div style="font-size:32px;margin-bottom:12px;">🔒</div>
     <div style="font-size:18px;font-weight:700;margin-bottom:6px;">Panel Admin</div>
-    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Ingresá la clave de acceso</div>
-    <input id="admin-pwd-input" type="password" placeholder="Clave" onkeydown="adminLoginKey(event)" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);margin-bottom:8px;">
+    <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Ingresá usuario y contraseña</div>
+    <input id="admin-user-input" type="text" placeholder="Usuario" onkeydown="adminLoginKey(event)" autocomplete="username" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);margin-bottom:8px;">
+    <input id="admin-pwd-input" type="password" placeholder="Contraseña" onkeydown="adminLoginKey(event)" autocomplete="current-password" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);margin-bottom:8px;">
     <div id="admin-pwd-error" style="display:none;color:#e55;font-size:12px;margin-bottom:8px;">Clave incorrecta</div>
     <button onclick="submitAdminLogin()" style="width:100%;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:600;cursor:pointer;">Ingresar</button>
     <button onclick="document.getElementById('admin-login-overlay').style.display='none'" style="width:100%;background:transparent;color:var(--muted);border:none;padding:8px;font-size:13px;cursor:pointer;margin-top:6px;">Cancelar</button>
