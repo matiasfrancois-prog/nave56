@@ -300,13 +300,13 @@ function renderAgrupaciones(){
     if(a.contacto||a.tel){
       html+='<div class="agrup-contacto">';
       if(a.contacto)html+='<div class="agrup-contacto-name">👤 '+a.contacto+'</div>';
-      if(a.tel)html+='<a class="agrup-wa" href="https://wa.me/'+a.tel+'" target="_blank">💬 WhatsApp</a>';
-      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" target="_blank">📸 @'+a.ig+'</a>';
+      if(a.tel)html+='<a class="agrup-wa" href="https://wa.me/'+a.tel+'" onclick="window.open(\'https://wa.me/'+a.tel+'\');return false;">💬 WhatsApp</a>';
+      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" onclick="window.open(\'https://instagram.com/'+a.ig+'\');return false;">📸 @'+a.ig+'</a>';
       html+='</div>';
     }else{
       var hasIg=a.ig?true:false;
       html+='<div class="agrup-contacto">';
-      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" target="_blank">📸 @'+a.ig+'</a>';
+      if(a.ig)html+='<a class="agrup-ig" href="https://instagram.com/'+a.ig+'" onclick="window.open(\'https://instagram.com/'+a.ig+'\');return false;">📸 @'+a.ig+'</a>';
       if(!hasIg)html+='<div class="agrup-sin-contacto">Contacto próximamente</div>';
       html+='</div>';
     }
@@ -1372,12 +1372,7 @@ function fetchSupabase(){
   }catch(e){}
 }
 
-loadState();
-fillRefereeList();
-renderPartidos();
-renderCanchas();
-fetchSupabase();
-setInterval(fetchSupabase,20000);
+// Bootstrap diferido al DOMContentLoaded para que el DOM esté listo en mobile
 window.addEventListener('resize',function(){if(document.getElementById('tab-mapa').classList.contains('active'))renderMapa();});
 
 // Inyectar logo MOG en banners: espera a que renderSponsors haya corrido
@@ -1432,10 +1427,19 @@ function initWatermark(){
   }
 }
 window.addEventListener('DOMContentLoaded',function(){
+  loadState();
+  fillRefereeList();
+  renderPartidos();
+  renderCanchas();
+  renderHistorial();
+  renderSponsors();
+  renderGastro();
   setTimeout(initMogBanners,50);
   setTimeout(initCountdown,100);
   setTimeout(initWatermark,300);
   setTimeout(initPersonas,500);
+  setTimeout(fetchSupabase,800);
+  setInterval(fetchSupabase,20000);
 });
 </script>
 
@@ -1512,7 +1516,7 @@ window.addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="stats-row">
     <div class="stat-card"><div class="stat-label">📅 Fecha</div><div class="stat-value" style="font-size:16px;">21-22 Nov 2026</div></div>
-    <div class="stat-card"><div class="stat-label">📍 Sede</div><div class="stat-value" style="font-size:15px;">Club Hindú</div><div style="margin-top:4px;"><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;letter-spacing:.03em;">Ver en Maps →</a></div></div>
+    <div class="stat-card"><div class="stat-label">📍 Sede</div><div class="stat-value" style="font-size:15px;">Club Hindú</div><div style="margin-top:4px;"><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" onclick="window.open('https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires');return false;" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;letter-spacing:.03em;">Ver en Maps →</a></div></div>
     <div class="stat-card"><div class="stat-label">🏉 Equipos</div><div class="stat-value" id="stat-equipos">0</div></div>
     <div class="stat-card" onclick="setFilter('live',document.querySelector('.live-btn'))" style="cursor:pointer;" title="Ver partidos en vivo"><div class="stat-label">⚡ En Vivo</div><div class="stat-value live" id="stat-live">0</div></div>
     <div class="stat-card"><div class="stat-label">👥 Personas</div><div class="stat-value" id="stat-personas" style="transition:color .3s;">—</div></div>
@@ -1551,7 +1555,7 @@ window.addEventListener('DOMContentLoaded',function(){
 <div class="tab-panel" id="tab-mapa">
   <div class="section-title">📍 Plano del Club Hindú</div>
   <div style="margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-    <a href="https://maps.google.com/?q=Club+Hindu+Av+del+Libertador+14700+Don+Torcuato+Buenos+Aires" target="_blank" style="display:inline-flex;align-items:center;gap:7px;background:var(--accent-lo);border:1px solid var(--accent);color:var(--accent-hi);text-decoration:none;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;letter-spacing:.02em;">
+    <a href="https://maps.google.com/?q=Club+Hindu+Av+del+Libertador+14700+Don+Torcuato+Buenos+Aires" onclick="window.open('https://maps.google.com/?q=Club+Hindu+Av+del+Libertador+14700+Don+Torcuato+Buenos+Aires');return false;" style="display:inline-flex;align-items:center;gap:7px;background:var(--accent-lo);border:1px solid var(--accent);color:var(--accent-hi);text-decoration:none;padding:7px 16px;border-radius:20px;font-size:13px;font-weight:600;letter-spacing:.02em;">
       <span>🗺</span> Ver Club Hindú en Google Maps
     </a>
     <span style="font-size:12px;color:var(--muted);">Av. del Libertador 14.700, Don Torcuato</span>
