@@ -972,68 +972,125 @@ function exportPDFAgrupaciones(){
   showToast('Generando PDF Agrupaciones…');
   try{
     var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var margin=14,y=20,pageW=210;
+    var margin=14,y=20,pageW=210,colW=pageW-margin*2;
     doc.setFillColor(13,17,23);doc.rect(0,0,pageW,28,'F');
-    doc.setTextColor(200,168,75);doc.setFontSize(24);doc.setFont('helvetica','bold');doc.text('NAVE56',margin,18);
+    doc.setTextColor(200,168,75);doc.setFontSize(22);doc.setFont('helvetica','bold');doc.text('NAVE56',margin,18);
     doc.setFontSize(9);doc.setTextColor(139,148,158);doc.text('Buenos Aires · 21-22 Nov 2026',margin,25);
-    y=40;
-    doc.setTextColor(30,30,30);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('AGRUPACIONES',margin,y);y+=10;
-    doc.setFontSize(9);doc.setFont('helvetica','normal');
-    var catColors={A:[184,150,62],B:[75,142,240],C:[155,111,212]};
-    AGRUPACIONES.forEach(function(a){
-      if(y>270){doc.addPage();y=20;}
-      var cc=catColors[a.cat]||[100,100,100];
-      doc.setFillColor(cc[0],cc[1],cc[2]);doc.rect(margin,y-4,3,10,'F');
-      doc.setFillColor(240,242,245);doc.roundedRect(margin+4,y-4,pageW-margin*2-4,10,1,1,'F');
-      doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.text((a.n||'')+'  '+a.nombre,margin+7,y+3);
-      doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');
-      var info=[];
-      if(a.provincia)info.push(a.provincia);
-      if(a.contacto)info.push('Capitán: '+a.contacto);
-      if(info.length)doc.text(info.join(' · '),pageW-margin,y+3,'right');
-      y+=12;
+    y=38;
+    doc.setTextColor(30,30,30);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('AGRUPACIONES',margin,y);
+    doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+    doc.text(AGRUPACIONES.length+' equipos participantes',pageW-margin,y,'right');
+    y+=10;
+    AGRUPACIONES.forEach(function(a,idx){
+      var rowH=a.contacto&&a.tel?16:13;
+      if(y+rowH>278){doc.addPage();y=18;}
+      // fondo alternado
+      if(idx%2===0){doc.setFillColor(245,246,248);}else{doc.setFillColor(255,255,255);}
+      doc.roundedRect(margin,y-3,colW,rowH,1,1,'F');
+      // numero
+      doc.setFillColor(40,40,40);doc.roundedRect(margin+1,y-2,8,rowH-2,1,1,'F');
+      doc.setTextColor(220,190,70);doc.setFont('helvetica','bold');doc.setFontSize(8);
+      doc.text(String(a.n),margin+5,y+rowH/2-3,'center');
+      // nombre
+      doc.setTextColor(20,20,20);doc.setFont('helvetica','bold');doc.setFontSize(10);
+      doc.text(a.nombre,margin+12,y+4);
+      // provincia
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(80,80,80);
+      doc.text(a.provincia||'',pageW-margin-2,y+4,'right');
+      // capitán y contacto segunda línea
+      if(a.contacto||a.tel||a.ig){
+        var contactLine='';
+        if(a.contacto)contactLine+='Cap: '+a.contacto+'  ';
+        if(a.tel)contactLine+='📱 +'+a.tel+'  ';
+        if(a.ig)contactLine+='@'+a.ig;
+        doc.setFontSize(7.5);doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');
+        doc.text(contactLine.trim(),margin+12,y+10);
+      }
+      y+=rowH+1;
     });
+    // footer
+    doc.setFontSize(8);doc.setTextColor(150,150,150);
+    doc.text('NAVE56 · Club Hindú, Don Torcuato · 21-22 Nov 2026',pageW/2,290,'center');
     doc.save('NAVE56-agrupaciones.pdf');showToast('PDF descargado ✓');
-  }catch(e){showToast('Error al generar PDF');}
+  }catch(e){showToast('Error al generar PDF: '+e.message);}
 }
-
 function exportPDFCronograma(){
   showToast('Generando PDF Cronograma…');
   try{
     var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    var margin=14,y=20,pageW=210;
+    var margin=14,y=20,pageW=210,colW=pageW-margin*2;
     doc.setFillColor(13,17,23);doc.rect(0,0,pageW,28,'F');
-    doc.setTextColor(200,168,75);doc.setFontSize(24);doc.setFont('helvetica','bold');doc.text('NAVE56',margin,18);
+    doc.setTextColor(200,168,75);doc.setFontSize(22);doc.setFont('helvetica','bold');doc.text('NAVE56',margin,18);
     doc.setFontSize(9);doc.setTextColor(139,148,158);doc.text('Buenos Aires · 21-22 Nov 2026',margin,25);
-    y=40;
-    doc.setTextColor(30,30,30);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('CRONOGRAMA',margin,y);y+=10;
-    doc.setFontSize(9);doc.setFont('helvetica','normal');
-    var dias=['Viernes 20 Nov','Sábado 21 Nov','Domingo 22 Nov'];
-    var cronData=state.cronograma||[];
-    if(!cronData.length){
-      doc.setFontSize(10);doc.text('(Sin eventos cargados)',margin,y);
-    }
-    cronData.forEach(function(dia,di){
-      if(y>260){doc.addPage();y=20;}
-      doc.setFillColor(200,168,75);doc.rect(margin,y-3,pageW-margin*2,8,'F');
-      doc.setTextColor(13,17,23);doc.setFont('helvetica','bold');doc.setFontSize(10);
-      doc.text(dias[di]||'Día '+(di+1),margin+2,y+3);
-      y+=12;
-      (dia.eventos||[]).forEach(function(ev){
-        if(y>270){doc.addPage();y=20;}
-        doc.setFillColor(240,242,245);doc.roundedRect(margin,y-3,pageW-margin*2,9,1,1,'F');
-        doc.setTextColor(100,100,100);doc.setFont('helvetica','bold');doc.setFontSize(9);
-        if(ev.hora)doc.text(ev.hora,margin+2,y+3);
-        doc.setTextColor(30,30,30);doc.setFont('helvetica','normal');
-        doc.text(ev.nombre||ev.label||'',margin+20,y+3);
-        y+=11;
-      });
-      y+=4;
-    });
-    doc.save('NAVE56-cronograma.pdf');showToast('PDF descargado ✓');
-  }catch(e){showToast('Error al generar PDF');}
-}
+    y=38;
+    doc.setTextColor(30,30,30);doc.setFontSize(14);doc.setFont('helvetica','bold');doc.text('CRONOGRAMA',margin,y);y+=12;
 
+    // Datos hardcodeados del cronograma
+    var CRONO_DATA=[
+      {dia:'Viernes 20 Nov — Reuniones Oficiales',lugar:'Club Hindú · Don Torcuato',eventos:[
+        {hora:'19:00',titulo:'Reunión de Presidentes',desc:'Representantes de cada equipo. Definición de reglamento y formato del torneo.'},
+        {hora:'20:00',titulo:'Reunión de Árbitros',desc:'Cuerpo arbitral completo. Coordinación y criterios de aplicación del reglamento.'},
+        {hora:'20:30',titulo:'Entrega de Obleas',desc:'Distribución de obleas oficiales del torneo a los representantes de cada equipo.'},
+        {hora:'21:00',titulo:'Reunión de Capitanes',desc:'Capitanes de todos los equipos. Aclaraciones de reglamento y coordinación.'}
+      ]},
+      {dia:'Sábado 21 Nov — Día 1 del Torneo',lugar:'Club Hindú · 7 canchas simultáneas',eventos:[
+        {hora:'09:00',titulo:'Desfile de apertura',desc:'Desfile con todos los equipos participantes del torneo.'},
+        {hora:'10:00',titulo:'Presentación del Evento',desc:'Presentación oficial del Torneo NAVE56. Autoridades, sponsors y agrupaciones.'},
+        {hora:'10:30',titulo:'Plantación de Árboles',desc:'Acto simbólico de plantación de árboles como legado del torneo.'},
+        {hora:'11:00',titulo:'Himno Nacional',desc:'Entonación del Himno. Inicio formal de la competencia.'},
+        {hora:'11:30',titulo:'Inicio de Partidos',desc:'Primer coup d\'envoi. Categorías A, B y C. 7 canchas simultáneas.'},
+        {hora:'12:00',titulo:'Apertura del Buffet',desc:'Buffet para jugadores, cuerpos técnicos e invitados.'},
+        {hora:'A CONFIRMAR',titulo:'2ª y 3ª ronda',desc:'Continuación del fixture según cronograma de partidos.'},
+        {hora:'NOCHE',titulo:'Tercer Tiempo — Día 1',desc:'Cierre del primer día. Bar, quincho y espacio de encuentro entre agrupaciones.'}
+      ]},
+      {dia:'Domingo 22 Nov — Día 2 del Torneo',lugar:'Club Hindú · Día de finales',eventos:[
+        {hora:'09:00',titulo:'Inicio de partidos — Continuación',desc:'Rondas clasificatorias y cruces según posiciones del día anterior.'},
+        {hora:'A CONFIRMAR',titulo:'Semifinales',desc:'Los mejores equipos de cada zona disputan el acceso a la final.'},
+        {hora:'A CONFIRMAR',titulo:'Final NAVE56',desc:'Gran final del torneo.'},
+        {hora:'A CONFIRMAR',titulo:'Ceremonia de Premiación',desc:'Entrega de trofeos, premios individuales y cierre oficial del torneo.'},
+        {hora:'12:00',titulo:'Apertura del Buffet',desc:'Buffet para jugadores, cuerpos técnicos e invitados.'},
+        {hora:'TARDE',titulo:'Tercer Tiempo — Cierre NAVE56',desc:'Festejo final de todos los participantes. Bar, quincho y música.'},
+        {hora:'21:00',titulo:'Cena de Cierre',desc:'Cena oficial de cierre. Brindis final con todos los participantes del torneo.'}
+      ]}
+    ];
+
+    CRONO_DATA.forEach(function(diaObj){
+      if(y>255){doc.addPage();y=18;}
+      // Header del día
+      doc.setFillColor(200,168,75);doc.roundedRect(margin,y-3,colW,10,1,1,'F');
+      doc.setTextColor(13,17,23);doc.setFont('helvetica','bold');doc.setFontSize(10);
+      doc.text(diaObj.dia,margin+3,y+4);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);
+      doc.text(diaObj.lugar,pageW-margin-2,y+4,'right');
+      y+=13;
+
+      diaObj.eventos.forEach(function(ev,ei){
+        if(y>272){doc.addPage();y=18;}
+        var rowH=13;
+        if(ei%2===0){doc.setFillColor(248,249,250);}else{doc.setFillColor(255,255,255);}
+        doc.roundedRect(margin,y-2,colW,rowH,1,1,'F');
+        // hora
+        doc.setFillColor(60,60,60);doc.roundedRect(margin+1,y-1,18,rowH-2,1,1,'F');
+        doc.setTextColor(220,190,70);doc.setFont('helvetica','bold');doc.setFontSize(7.5);
+        doc.text(ev.hora,margin+10,y+5,'center');
+        // titulo
+        doc.setTextColor(20,20,20);doc.setFont('helvetica','bold');doc.setFontSize(9);
+        doc.text(ev.titulo,margin+22,y+4);
+        // desc
+        doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.setTextColor(90,90,90);
+        var descLines=doc.splitTextToSize(ev.desc,colW-24);
+        doc.text(descLines[0]||'',margin+22,y+9);
+        y+=rowH;
+      });
+      y+=5;
+    });
+
+    // footer
+    doc.setFontSize(8);doc.setTextColor(150,150,150);
+    doc.text('NAVE56 · Club Hindú, Don Torcuato · 21-22 Nov 2026  |  Horarios provisorios sujetos a confirmación',pageW/2,290,'center');
+    doc.save('NAVE56-cronograma.pdf');showToast('PDF descargado ✓');
+  }catch(e){showToast('Error al generar PDF: '+e.message);}
+}
 function exportPDFSponsors(){
   showToast('Generando PDF Sponsors…');
   try{
