@@ -481,6 +481,15 @@ function renderPartidos(){
     if(p.touch1)touchInfo+=(touchInfo?' · ':'')+p.touch1;
     if(p.touch2)touchInfo+=(touchInfo?' · ':'')+p.touch2;
     html+='<div class="partido-referee">🏳 Referee: '+(p.referee||'<span style="opacity:.5">—</span>')+(touchInfo?' &nbsp;·&nbsp; Touch: '+touchInfo:'')+'</div>';
+    // Tarjetas en vivo
+    if(p.estado==='live'&&p.tarjetas&&p.tarjetas.length){
+      html+='<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">';
+      p.tarjetas.forEach(function(t){
+        var emoji=t.tipo==='roja'?'🔴':'🟡';
+        html+='<span style="font-size:11px;background:rgba(0,0,0,.06);border-radius:4px;padding:2px 6px;">'+emoji+' '+t.equipo+'</span>';
+      });
+      html+='</div>';
+    }
     html+='</div>';
     html+='<div class="team-name team-right">'+(p.visitante||'?')+'</div></div>';
   });
@@ -960,13 +969,13 @@ function addCard(i,side,tipo){
   var equipo=side==='local'?state.partidos[i].local:state.partidos[i].visitante;
   var t=new Date();var hora=t.getHours()+':'+('0'+t.getMinutes()).slice(-2);
   state.partidos[i].tarjetas.push({equipo:equipo,side:side,tipo:tipo,hora:hora});
-  saveState();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
+  saveState();renderPartidos();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
 }
 function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
 function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();}
 function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
 function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
-function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderAdminPartidos();showToast('Tarjeta eliminada');}
+function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderPartidos();renderAdminPartidos();showToast('Tarjeta eliminada');}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
 
