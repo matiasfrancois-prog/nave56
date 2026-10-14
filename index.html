@@ -466,11 +466,12 @@ function renderPartidos(){
     var cn='Cancha '+p.cancha;if(sponsorCanchas[String(p.cancha)])cn+=' – '+sponsorCanchas[String(p.cancha)];
     var catColor=catColors[p.cat]||'var(--muted)';
     var catLabel=catLabels[p.cat]||p.cat||'';
+    var tipoLabel=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'?{oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||'':'';
     var diaLabel=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
     html+='<div class="partido-card '+(p.estado==='live'?'live':p.estado==='finalizado'?'finalizado':'')+'">';
     html+='<div class="team-name team-left">'+(p.local||'?')+'</div>';
     html+='<div class="partido-center">';
-    html+='<span style="font-size:10px;font-weight:700;color:'+catColor+';letter-spacing:.06em;text-transform:uppercase;">'+catLabel+'</span>';
+    html+='<span style="font-size:10px;font-weight:700;color:'+catColor+';letter-spacing:.06em;text-transform:uppercase;">'+catLabel+'</span>'+(tipoLabel?'<span style="background:rgba(200,168,75,.2);color:#c8a84b;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:700;margin-left:3px;">'+tipoLabel+'</span>':'');
     html+='<span class="badge '+bc+'">'+bt+'</span>';
     if(p.estado!=='proximo')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
     html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
@@ -618,10 +619,26 @@ function renderHistorial(){
   var fin=state.partidos.filter(function(p){return p.estado==='finalizado';});
   if(!fin.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div>';return;}
   var html='';
-  fin.forEach(function(p){html+='<div class="historial-card"><div style="font-weight:700;font-size:16px;">'+p.local+' vs '+p.visitante+'</div><div class="historial-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div><div class="historial-meta">Cancha '+p.cancha+' · Día '+p.dia+' · '+(p.hora||'')+'</div></div>';});
+  fin.forEach(function(p){
+    var catColH=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
+    var tipoH=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'?{oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||'':'';
+    var refH='';
+    if(p.referee)refH+='🏳 '+p.referee;
+    if(p.touch1)refH+=(refH?' · ':'')+p.touch1;
+    if(p.touch2)refH+=(refH?' · ':'')+p.touch2;
+    html+='<div class="historial-card">';
+    html+='<div style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;">';
+    html+='<span style="background:'+catColH+';color:#fff;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">CAT '+p.cat+'</span>';
+    if(tipoH)html+='<span style="background:rgba(200,168,75,.2);color:#c8a84b;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">'+tipoH+'</span>';
+    html+='</div>';
+    html+='<div style="font-weight:700;font-size:16px;">'+p.local+' vs '+p.visitante+'</div>';
+    html+='<div class="historial-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
+    html+='<div class="historial-meta">Cancha '+p.cancha+' · Día '+p.dia+' · '+(p.hora||'')+'</div>';
+    if(refH)html+='<div style="font-size:12px;color:var(--muted);margin-top:4px;">'+refH+'</div>';
+    html+='</div>';
+  });
   list.innerHTML=html;
 }
-
 var CANCHA_PINS=[{num:1,x:49,y:47},{num:2,x:72,y:29},{num:3,x:73,y:41},{num:4,x:73,y:52},{num:5,x:40,y:37},{num:6,x:30,y:27},{num:7,x:26,y:40}];
 var SERVICE_PINS=[{x:53,y:60,label:'🚪 Entrada',color:'#f97316'},{x:51,y:56,label:'👕 Vestuarios',color:'#3b82f6'},{x:76,y:22,label:'🍺 Bar/3T',color:'#f97316'},{x:82,y:20,label:'🍖 Quincho',color:'#22c55e'},{x:68,y:23,label:'💪 Gimnasio',color:'#8b949e'},{x:37,y:22,label:'🏕 Espacio AG',color:'#8b949e'},{x:18,y:22,label:'🅿 Rugby',color:'#8b949e'},{x:20,y:53,label:'🅿 Hockey',color:'#8b949e'}];
 
@@ -771,6 +788,10 @@ function addReferee(){
   showToast('Árbitro agregado ✓');
 }
 
+function toggleTipoField(cat){
+  var f=document.getElementById('p-tipo-field');
+  if(f)f.style.display=cat==='A'?'':'none';
+}
 function addPartido(){
   var local=document.getElementById('p-local').value;
   var visit=document.getElementById('p-visit').value;
@@ -779,14 +800,14 @@ function addPartido(){
   var hora=document.getElementById('p-hora').value;
   var estado=document.getElementById('p-estado').value;
   var cat=document.getElementById('p-cat')?document.getElementById('p-cat').value:'A';
+  var tipo=cat==='A'&&document.getElementById('p-tipo')?document.getElementById('p-tipo').value:'grupo';
   var referee=document.getElementById('p-referee')?document.getElementById('p-referee').value:'';
   var touch1=document.getElementById('p-touch1')?document.getElementById('p-touch1').value:'';
   var touch2=document.getElementById('p-touch2')?document.getElementById('p-touch2').value:'';
   if(!local||!visit||local===visit){showToast('Seleccioná dos equipos distintos');return;}
-  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
+  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,tipo:tipo,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
-
 function renderAdminPartidos(){
   var list=document.getElementById('admin-partidos-list');
   if(!state.partidos.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;">Sin partidos</div>';return;}
@@ -800,7 +821,8 @@ function renderAdminPartidos(){
     html+='<div class="admin-partido-row">';
     // Header fila
     html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-    html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'<span style="margin-left:8px;font-size:11px;background:'+catColor+';color:#fff;border-radius:4px;padding:2px 6px;">CAT '+p.cat+'</span></div>';
+    var tipoAdm=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'?{oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||'':'';
+    html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'<span style="margin-left:8px;font-size:11px;background:'+catColor+';color:#fff;border-radius:4px;padding:2px 6px;">CAT '+p.cat+'</span>'+(tipoAdm?'<span style="margin-left:4px;font-size:11px;background:rgba(200,168,75,.25);color:#c8a84b;border-radius:4px;padding:2px 6px;">'+tipoAdm+'</span>':'')+"</div>";
     html+='<button class="btn-danger" onclick="delPartido('+i+')">✕</button></div>';
     // Info horario
     html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">🕐 Día '+p.dia+' · '+p.hora+'  |  🏟 Cancha '+p.cancha+'</div>';
@@ -1412,7 +1434,8 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Día</label><select id="p-dia"><option value="1">Sábado 21</option><option value="2">Domingo 22</option></select></div>
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
-      <div class="form-field"><label>División</label><select id="p-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Vet</option></select></div>
+      <div class="form-field"><label>División</label><select id="p-cat" onchange="toggleTipoField(this.value)"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Vet</option></select></div>
+      <div class="form-field" id="p-tipo-field" style="display:none;"><label>Tipo <span style="font-size:11px;opacity:.6">(solo Cat A)</span></label><select id="p-tipo"><option value="grupo">Fase de grupos</option><option value="oro">🥇 Copa de Oro</option><option value="plata">🥈 Copa de Plata</option><option value="bronce">🥉 Copa de Bronce</option></select></div>
       <div class="form-field"><label>Referee</label><select id="p-referee"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 1 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch1"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 2 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch2"><option value="">-- Sin asignar --</option></select></div>
