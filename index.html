@@ -973,7 +973,7 @@ function renderAdminPartidos(){
   });
   list.innerHTML=html;
 }
-function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();renderPartidos();renderMapa();}
+function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
   if(!state.partidos[i])return;
   if(side==='local')state.partidos[i].score_local=(state.partidos[i].score_local||0)+pts;
@@ -986,12 +986,12 @@ function addCard(i,side,tipo){
   var equipo=side==='local'?state.partidos[i].local:state.partidos[i].visitante;
   var t=new Date();var hora=t.getHours()+':'+('0'+t.getMinutes()).slice(-2);
   state.partidos[i].tarjetas.push({equipo:equipo,side:side,tipo:tipo,hora:hora});
-  saveState();renderPartidos();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
+  saveState();saveSupabase(state.partidos[i]);renderPartidos();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
 }
-function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
-function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();}
-function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
-function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
+function updateEstado(i,val){state.partidos[i].estado=val;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
+function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();saveSupabase(state.partidos[i]);}
+function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
+function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
 
 // ── PERSONAS EN EL EVENTO ─────────────────────────────────────────────────
 var PERSONAS_MODO='simulado'; // 'simulado' | 'real'
@@ -1283,6 +1283,53 @@ function exportPDFContextual(){
   else exportPDF();
 }
 
+// ── ESCRITURA A SUPABASE (sincroniza cada partido modificado) ────────────
+function saveSupabase(partido){
+  // partido = objeto del state.partidos
+  if(!partido)return;
+  try{
+    var body=JSON.stringify({
+      id:partido.id||undefined,
+      local:partido.local,
+      visitante:partido.visitante,
+      cancha:partido.cancha,
+      dia:partido.dia,
+      hora:partido.hora,
+      estado:partido.estado,
+      score_local:partido.score_local||0,
+      score_visit:partido.score_visit||0,
+      cat:partido.cat||'A',
+      tipo:partido.tipo||'grupo',
+      referee:partido.referee||'',
+      touch1:partido.touch1||'',
+      touch2:partido.touch2||'',
+      tarjetas:partido.tarjetas||[]
+    });
+    var xhr=new XMLHttpRequest();
+    if(partido.id){
+      // UPDATE existente
+      xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=eq.'+partido.id,true);
+    } else {
+      // INSERT nuevo — Supabase asignará id
+      xhr.open('POST',SUPABASE_URL+'/rest/v1/partidos',true);
+      xhr.setRequestHeader('Prefer','return=representation');
+    }
+    xhr.setRequestHeader('apikey',SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.onload=function(){
+      if((xhr.status===200||xhr.status===201)&&!partido.id){
+        try{
+          var res=JSON.parse(xhr.responseText);
+          if(res&&res[0]&&res[0].id)partido.id=res[0].id;
+        }catch(e){}
+      }
+    };
+    xhr.send(body);
+  }catch(e){}
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 function fetchSupabase(){
   try{
     var xhr=new XMLHttpRequest();
@@ -1297,7 +1344,23 @@ function fetchSupabase(){
             data.forEach(function(row){
               var existing=null;
               for(var i=0;i<state.partidos.length;i++){if(state.partidos[i].id&&state.partidos[i].id===row.id){existing=i;break;}}
-              var p={id:row.id,local:row.local||row.equipo_local,visitante:row.visitante||row.equipo_visitante,cancha:row.cancha,dia:row.dia,hora:row.hora,estado:row.estado,score_local:row.score_local||0,score_visit:row.score_visit||row.score_visitante||0};
+              var p={
+                id:row.id,
+                local:row.local||row.equipo_local||'',
+                visitante:row.visitante||row.equipo_visitante||'',
+                cancha:row.cancha,
+                dia:row.dia,
+                hora:row.hora,
+                estado:row.estado||'proximo',
+                score_local:row.score_local||0,
+                score_visit:row.score_visit||row.score_visitante||0,
+                cat:row.cat||row.categoria||'A',
+                tipo:row.tipo||'grupo',
+                referee:row.referee||row.arbitro||'',
+                touch1:row.touch1||'',
+                touch2:row.touch2||'',
+                tarjetas:row.tarjetas||(row.tarjetas_json?JSON.parse(row.tarjetas_json):[])
+              };
               if(existing!==null)state.partidos[existing]=p;else state.partidos.push(p);
             });
             saveState();renderPartidos();renderCanchas();renderMapa();
