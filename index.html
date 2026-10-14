@@ -975,6 +975,23 @@ function updateEstado(i,val){state.partidos[i].estado=val;saveState();renderPart
 function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();}
 function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
 function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
+
+var adminSecciones=['partidos','scoring','equipos','referees','gastro','sponsors'];
+function adminGo(sec){
+  document.getElementById('admin-menu').style.display='none';
+  adminSecciones.forEach(function(s){
+    var el=document.getElementById('admin-sec-'+s);
+    if(el)el.style.display=(s===sec?'block':'none');
+  });
+  if(sec==='scoring')renderAdminPartidos();
+}
+function adminBack(){
+  adminSecciones.forEach(function(s){
+    var el=document.getElementById('admin-sec-'+s);
+    if(el)el.style.display='none';
+  });
+  document.getElementById('admin-menu').style.display='block';
+}
 function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderPartidos();renderAdminPartidos();showToast('Tarjeta eliminada');}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 function delPartido(i){state.partidos.splice(i,1);saveState();renderPartidos();renderAdminPartidos();}
@@ -1447,26 +1464,53 @@ window.addEventListener('DOMContentLoaded',function(){
 </div>
 
 <div class="tab-panel" id="tab-admin">
-  <div class="section-title">⚙ Panel Admin</div>
-  <div class="admin-section">
-    <div class="admin-section-title">Equipos</div>
-    <div class="form-grid" style="margin-bottom:10px;">
-      <div class="form-field"><label>Nombre</label><input type="text" id="eq-nombre" placeholder="Ej: CUBA RC"></div>
-      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Veteranos</option></select></div>
+
+  <!-- Menú de íconos del admin -->
+  <div id="admin-menu" style="display:block;">
+    <div style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:16px;text-align:center;">⚙ Panel Administración</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:400px;margin:0 auto 24px;">
+      <button onclick="adminGo('partidos')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">🏉</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Partidos</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Agregar y gestionar</div>
+      </button>
+      <button onclick="adminGo('scoring')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">⚡</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Scoring en Vivo</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Puntajes y tarjetas</div>
+      </button>
+      <button onclick="adminGo('equipos')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">👕</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Equipos</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Lista de equipos</div>
+      </button>
+      <button onclick="adminGo('referees')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">🏳</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Árbitros</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Referees y jueces</div>
+      </button>
+      <button onclick="adminGo('gastro')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">🍖</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Gastronomía</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Puestos de comida</div>
+      </button>
+      <button onclick="adminGo('sponsors')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">🤝</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Sponsors</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Patrocinadores</div>
+      </button>
     </div>
-    <button class="btn-save" onclick="addEquipo()" style="margin-bottom:14px;">+ Agregar Equipo</button>
-    <div class="admin-list" id="admin-equipos-list"></div>
-  </div>
-  <div class="admin-section">
-    <div class="admin-section-title">Árbitros &amp; Jueces</div>
-    <div class="form-grid" style="margin-bottom:10px;">
-      <div class="form-field"><label>Nombre</label><input type="text" id="rf-nombre" placeholder="Ej: Carlos Méndez"></div>
+    <div style="text-align:center;">
+      <button class="btn-danger" onclick="resetAll()" style="font-size:12px;padding:6px 16px;">⚠ Borrar todos los datos</button>
     </div>
-    <button class="btn-save" onclick="addReferee()" style="margin-bottom:14px;">+ Agregar Árbitro / Juez</button>
-    <div class="admin-list" id="admin-referees-list"></div>
   </div>
-  <div class="admin-section">
-    <div class="admin-section-title">Partidos</div>
+
+  <!-- Sección Partidos -->
+  <div id="admin-sec-partidos" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">🏉 Agregar Partido</div>
+    </div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Local</label><select id="p-local"></select></div>
       <div class="form-field"><label>Visitante</label><select id="p-visit"></select></div>
@@ -1480,33 +1524,75 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Juez Touch 1 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch1"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 2 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch2"><option value="">-- Sin asignar --</option></select></div>
     </div>
-    <button class="btn-save" onclick="addPartido()" style="margin-bottom:14px;">+ Agregar Partido</button>
+    <button class="btn-save" onclick="addPartido()" style="margin-bottom:14px;width:100%;">+ Agregar Partido</button>
+  </div>
+
+  <!-- Sección Scoring en Vivo -->
+  <div id="admin-sec-scoring" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">⚡ Scoring en Vivo</div>
+    </div>
     <div id="admin-partidos-list"></div>
   </div>
-  <div class="admin-section">
-    <div class="admin-section-title">Gastronomía</div>
+
+  <!-- Sección Equipos -->
+  <div id="admin-sec-equipos" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">👕 Equipos</div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px;">
+      <div class="form-field"><label>Nombre</label><input type="text" id="eq-nombre" placeholder="Ej: CUBA RC"></div>
+      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option><option value="C">C – Super Veteranos</option></select></div>
+    </div>
+    <button class="btn-save" onclick="addEquipo()" style="margin-bottom:14px;width:100%;">+ Agregar Equipo</button>
+    <div class="admin-list" id="admin-equipos-list"></div>
+  </div>
+
+  <!-- Sección Árbitros -->
+  <div id="admin-sec-referees" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">🏳 Árbitros &amp; Jueces</div>
+    </div>
+    <div class="form-grid" style="margin-bottom:10px;">
+      <div class="form-field"><label>Nombre</label><input type="text" id="rf-nombre" placeholder="Ej: Carlos Méndez"></div>
+    </div>
+    <button class="btn-save" onclick="addReferee()" style="margin-bottom:14px;width:100%;">+ Agregar Árbitro / Juez</button>
+    <div class="admin-list" id="admin-referees-list"></div>
+  </div>
+
+  <!-- Sección Gastronomía -->
+  <div id="admin-sec-gastro" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">🍖 Gastronomía</div>
+    </div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Nombre</label><input type="text" id="g-nombre" placeholder="Ej: Parrilla del Profe"></div>
       <div class="form-field"><label>Tipo</label><select id="g-tipo"><option>Parrilla</option><option>Sandwiches</option><option>Bebidas</option><option>Postres</option><option>Otro</option></select></div>
       <div class="form-field" style="grid-column:1/-1;"><label>Descripción</label><input type="text" id="g-desc" placeholder="Ej: Choripán, bondiola"></div>
       <div class="form-field"><label>Horario</label><input type="text" id="g-horario" placeholder="10:00 – 18:00"></div>
     </div>
-    <button class="btn-save" onclick="addGastro()" style="margin-bottom:14px;">+ Agregar Puesto</button>
+    <button class="btn-save" onclick="addGastro()" style="margin-bottom:14px;width:100%;">+ Agregar Puesto</button>
     <div class="admin-list" id="admin-gastro-list"></div>
   </div>
-  <div class="admin-section">
-    <div class="admin-section-title">Sponsors adicionales</div>
+
+  <!-- Sección Sponsors -->
+  <div id="admin-sec-sponsors" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;font-size:20px;cursor:pointer;color:var(--fg);">←</button>
+      <div style="font-size:15px;font-weight:700;">🤝 Sponsors</div>
+    </div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Empresa</label><input type="text" id="sp-nombre"></div>
       <div class="form-field"><label>Categoría</label><input type="text" id="sp-cat"></div>
     </div>
-    <button class="btn-save" onclick="addSponsor()">+ Agregar Sponsor</button>
+    <button class="btn-save" onclick="addSponsor()" style="width:100%;">+ Agregar Sponsor</button>
     <div class="admin-list" id="admin-sponsors-list" style="margin-top:10px;"></div>
   </div>
-  <div class="admin-section">
-    <div class="admin-section-title">Reset</div>
-    <button class="btn-danger" onclick="resetAll()">⚠ Borrar todos los datos</button>
-  </div>
+
 </div>
 
 <!-- AGRUPACIONES -->
