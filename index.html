@@ -847,19 +847,42 @@ function renderAdminPartidos(){
     }
 
     // Referee select
+    // Calcular referees ocupados en el mismo dia+hora (excluyendo este partido)
+    var ocupados={};
+    state.partidos.forEach(function(op,oi){
+      if(oi===i)return;
+      if(op.dia!==p.dia||op.hora!==p.hora)return;
+      if(op.estado==='finalizado')return;
+      if(op.referee)ocupados[op.referee]=true;
+      if(op.touch1)ocupados[op.touch1]=true;
+      if(op.touch2)ocupados[op.touch2]=true;
+    });
+
     var rfLocal='<select onchange="updatePartidoReferee('+i+',\'referee\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
     rfLocal+='<option value="">-- Sin asignar --</option>';
-    (state.referees||[]).forEach(function(r){rfLocal+='<option value="'+r+'"'+(p.referee===r?' selected':'')+'>'+r+'</option>';});
+    (state.referees||[]).forEach(function(r){
+      var esMio=p.referee===r;
+      var bloq=!esMio&&ocupados[r];
+      rfLocal+='<option value="'+r+'"'+(esMio?' selected':'')+(bloq?' disabled':'')+'>'+r+(bloq?' (ocupado)':'')+'</option>';
+    });
     rfLocal+='</select>';
 
     var t1Local='<select onchange="updatePartidoReferee('+i+',\'touch1\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
     t1Local+='<option value="">-- Opcional --</option>';
-    (state.referees||[]).forEach(function(r){t1Local+='<option value="'+r+'"'+(p.touch1===r?' selected':'')+'>'+r+'</option>';});
+    (state.referees||[]).forEach(function(r){
+      var esMio=p.touch1===r;
+      var bloq=!esMio&&ocupados[r];
+      t1Local+='<option value="'+r+'"'+(esMio?' selected':'')+(bloq?' disabled':'')+'>'+r+(bloq?' (ocupado)':'')+'</option>';
+    });
     t1Local+='</select>';
 
     var t2Local='<select onchange="updatePartidoReferee('+i+',\'touch2\',this.value)" style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--fg);font-size:12px;width:100%;">';
     t2Local+='<option value="">-- Opcional --</option>';
-    (state.referees||[]).forEach(function(r){t2Local+='<option value="'+r+'"'+(p.touch2===r?' selected':'')+'>'+r+'</option>';});
+    (state.referees||[]).forEach(function(r){
+      var esMio=p.touch2===r;
+      var bloq=!esMio&&ocupados[r];
+      t2Local+='<option value="'+r+'"'+(esMio?' selected':'')+(bloq?' disabled':'')+'>'+r+(bloq?' (ocupado)':'')+'</option>';
+    });
     t2Local+='</select>';
 
     html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px;font-size:11px;">';
