@@ -1022,7 +1022,7 @@ function exportPDFAgrupaciones(){
       // capitán y contacto segunda línea
       if(a.contacto||a.tel||a.ig){
         var contactLine='';
-        if(a.contacto)contactLine+='Cap: '+a.contacto+'  ';
+        if(a.contacto)contactLine+='Contacto: '+a.contacto+'  ';
         if(a.tel)contactLine+='📱 +'+a.tel+'  ';
         if(a.ig)contactLine+='@'+a.ig;
         doc.setFontSize(7.5);doc.setTextColor(100,100,100);doc.setFont('helvetica','normal');
