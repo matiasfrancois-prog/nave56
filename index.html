@@ -453,7 +453,17 @@ function renderPartidos(){
     if(currentFilter.startsWith('c'))return String(p.cancha)===currentFilter.slice(1);
     return true;
   });
-  document.getElementById('stat-equipos').textContent=state.equipos.length;
+  // Contar agrupaciones únicas (ALACRANES A + B + C = 1 club)
+  var listaEq=state.equipos.length?state.equipos:EQUIPOS_DEFAULT;
+  var agrupSet={};
+  listaEq.forEach(function(e){
+    var nombre=e.nombre||e;
+    // Quitar sufijo " A", " B", " C" al final
+    var base=nombre.replace(/\s+[ABC]$/i,'').trim();
+    agrupSet[base.toLowerCase()]=true;
+  });
+  var totalEq=Object.keys(agrupSet).length||listaEq.length;
+  document.getElementById('stat-equipos').textContent=totalEq;
   document.getElementById('stat-live').textContent=state.partidos.filter(function(p){return p.estado==='live';}).length;
   if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos para este filtro</p></div>';return;}
   filtered.sort(function(a,b){if(a.dia!==b.dia)return a.dia-b.dia;return a.hora>b.hora?1:-1;});
@@ -976,6 +986,67 @@ function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.pa
 function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
 function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
 
+// ── PERSONAS EN EL EVENTO ─────────────────────────────────────────────────
+var PERSONAS_MODO='simulado'; // 'simulado' | 'real'
+var PERSONAS_REAL=0;          // cuando sea 'real', poner el número acá
+var PERSONAS_MIN=350;
+var PERSONAS_MAX=1400;
+var PERSONAS_PASO=100;        // sube de a 100
+var PERSONAS_INTERVALO=10*60*1000; // cada 10 minutos
+var _personasActual=0;
+var _personasTimer=null;
+var _titulaTimer=null;
+
+function initPersonas(){
+  if(PERSONAS_MODO==='real'){
+    _actualizarPersonas(PERSONAS_REAL);
+    return;
+  }
+  // Simulado: arrancar en MIN y subir de a 100 cada 10 min
+  _personasActual=PERSONAS_MIN;
+  _actualizarPersonas(_personasActual);
+  _personasTimer=setInterval(function(){
+    if(_personasActual<PERSONAS_MAX){
+      _personasActual=Math.min(_personasActual+PERSONAS_PASO,PERSONAS_MAX);
+      _actualizarPersonas(_personasActual);
+    }
+  },PERSONAS_INTERVALO);
+}
+
+function _actualizarPersonas(n){
+  var el=document.getElementById('stat-personas');
+  if(!el)return;
+  // Animar el número subiendo
+  var desde=parseInt(el.textContent)||0;
+  if(isNaN(desde))desde=0;
+  var duracion=1200;
+  var pasos=30;
+  var delta=n-desde;
+  var paso=0;
+  clearInterval(el._animTimer);
+  el._animTimer=setInterval(function(){
+    paso++;
+    var val=Math.round(desde+(delta*(paso/pasos)));
+    el.textContent=val.toLocaleString('es-AR');
+    if(paso>=pasos){
+      clearInterval(el._animTimer);
+      el.textContent=n.toLocaleString('es-AR');
+      if(n>=PERSONAS_MAX){_titilaTope(el);}
+      else{el.style.color='var(--fg)';clearInterval(_titulaTimer);}
+    }
+  },duracion/pasos);
+}
+
+function _titilaTope(el){
+  clearInterval(_titulaTimer);
+  var on=true;
+  _titulaTimer=setInterval(function(){
+    el.style.color=on?'#e55':'var(--green)';
+    on=!on;
+  },600);
+}
+// ─────────────────────────────────────────────────────────────────────────
+
 var adminSecciones=['partidos','scoring','equipos','referees','gastro','sponsors'];
 function adminGo(sec){
   document.getElementById('admin-menu').style.display='none';
@@ -1294,6 +1365,7 @@ window.addEventListener('DOMContentLoaded',function(){
   setTimeout(initMogBanners,50);
   setTimeout(initCountdown,100);
   setTimeout(initWatermark,300);
+  setTimeout(initPersonas,500);
 });
 </script>
 
@@ -1372,7 +1444,8 @@ window.addEventListener('DOMContentLoaded',function(){
     <div class="stat-card"><div class="stat-label">📅 Fecha</div><div class="stat-value" style="font-size:16px;">21-22 Nov 2026</div></div>
     <div class="stat-card"><div class="stat-label">📍 Sede</div><div class="stat-value" style="font-size:15px;">Club Hindú</div><div style="margin-top:4px;"><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;letter-spacing:.03em;">Ver en Maps →</a></div></div>
     <div class="stat-card"><div class="stat-label">🏉 Equipos</div><div class="stat-value" id="stat-equipos">0</div></div>
-    <div class="stat-card"><div class="stat-label">⚡ En Vivo</div><div class="stat-value live" id="stat-live">0</div></div>
+    <div class="stat-card" onclick="setFilter('live',document.querySelector('.live-btn'))" style="cursor:pointer;" title="Ver partidos en vivo"><div class="stat-label">⚡ En Vivo</div><div class="stat-value live" id="stat-live">0</div></div>
+    <div class="stat-card"><div class="stat-label">👥 Personas</div><div class="stat-value" id="stat-personas" style="transition:color .3s;">—</div></div>
   </div>
   <div class="filter-row">
     <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
