@@ -1341,10 +1341,10 @@ function fetchSupabase(){
         try{
           var data=JSON.parse(xhr.responseText);
           if(data&&data.length){
+            // Supabase es fuente de verdad: reemplazar TODOS los partidos
+            var fromServer=[];
             data.forEach(function(row){
-              var existing=null;
-              for(var i=0;i<state.partidos.length;i++){if(state.partidos[i].id&&state.partidos[i].id===row.id){existing=i;break;}}
-              var p={
+              fromServer.push({
                 id:row.id,
                 local:row.local||row.equipo_local||'',
                 visitante:row.visitante||row.equipo_visitante||'',
@@ -1360,9 +1360,9 @@ function fetchSupabase(){
                 touch1:row.touch1||'',
                 touch2:row.touch2||'',
                 tarjetas:row.tarjetas||(row.tarjetas_json?JSON.parse(row.tarjetas_json):[])
-              };
-              if(existing!==null)state.partidos[existing]=p;else state.partidos.push(p);
+              });
             });
+            state.partidos=fromServer;
             saveState();renderPartidos();renderCanchas();renderMapa();
           }
         }catch(e){}
@@ -1439,7 +1439,7 @@ window.addEventListener('DOMContentLoaded',function(){
   setTimeout(initWatermark,300);
   setTimeout(initPersonas,500);
   setTimeout(fetchSupabase,800);
-  setInterval(fetchSupabase,20000);
+  setInterval(fetchSupabase,10000);
 });
 </script>
 
