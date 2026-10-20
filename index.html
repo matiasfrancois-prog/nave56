@@ -183,6 +183,35 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .admin-list-item-name{font-weight:600;font-size:14px;}
 .admin-list-item-sub{font-size:12px;color:var(--muted);}
 .admin-partido-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:6px;}
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;gap:16px;max-width:680px;}
+.chat-msg-list{display:flex;flex-direction:column;gap:12px;}
+.chat-msg{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.chat-msg.unread{border-color:var(--accent);background:var(--accent-lo);}
+.chat-msg-header{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;}
+.chat-msg-name{font-weight:700;font-size:14px;color:var(--fg);}
+.chat-msg-agrup{font-size:12px;color:var(--accent);background:var(--accent-lo);border-radius:4px;padding:2px 7px;}
+.chat-msg-time{font-size:11px;color:var(--muted);margin-left:auto;}
+.chat-msg-text{font-size:15px;line-height:1.5;color:var(--fg);}
+.chat-msg-reply{margin-top:10px;padding:10px 12px;background:var(--surface);border-left:3px solid var(--accent);border-radius:0 6px 6px 0;font-size:14px;color:var(--fg);}
+.chat-msg-reply-label{font-size:11px;color:var(--accent);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;}
+.chat-form{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:18px;}
+.chat-form-title{font-size:15px;font-weight:700;margin-bottom:14px;color:var(--fg);}
+.chat-form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.chat-form-row.one{grid-template-columns:1fr;}
+.chat-input{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--fg);font-size:14px;font-family:inherit;width:100%;outline:none;transition:border .15s;}
+.chat-input:focus{border-color:var(--accent);}
+textarea.chat-input{resize:vertical;min-height:80px;}
+.chat-send-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:11px 22px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:6px;}
+.chat-send-btn:hover{background:var(--accent-hi);}
+.chat-empty{text-align:center;color:var(--muted);padding:32px 0;font-size:15px;}
+.chat-notif-bubble{background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;margin-left:auto;flex-shrink:0;}
+.chat-reply-form{margin-top:12px;display:none;}
+.chat-reply-form.open{display:block;}
+.chat-reply-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--fg);font-size:14px;font-family:inherit;resize:none;min-height:60px;}
+.chat-reply-input:focus{outline:none;border-color:var(--accent);}
+.chat-reply-send{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;}
+.chat-sent-ok{color:var(--green);font-size:14px;font-weight:600;text-align:center;padding:12px;}
 /* AGRUPACIONES */
 .agrup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
 .agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}
@@ -1283,6 +1312,205 @@ function exportPDFContextual(){
   else exportPDF();
 }
 
+// ── CHAT SUPABASE ────────────────────────────────────────────────────────
+var chatUnread=0;
+var chatLoaded=false;
+
+function updateChatBubble(n){
+  chatUnread=n;
+  var side=document.getElementById('chat-bubble-side');
+  var mob=document.getElementById('chat-bubble-mob');
+  if(n>0){
+    if(side){side.textContent=n;side.style.display='flex';}
+    if(mob){mob.textContent=n;mob.style.display='flex';}
+  } else {
+    if(side)side.style.display='none';
+    if(mob)mob.style.display='none';
+  }
+}
+
+function loadMensajes(){
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET',SUPABASE_URL+'/rest/v1/mensajes?select=*&order=created_at.asc',true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState!==4)return;
+    if(xhr.status>=200&&xhr.status<300){
+      var msgs=[];
+      try{msgs=JSON.parse(xhr.responseText);}catch(e){}
+      renderMensajes(msgs);
+      // contar no leidos solo para admin
+      if(isAdmin){
+        var unread=0;
+        for(var i=0;i<msgs.length;i++){if(!msgs[i].leido)unread++;}
+        updateChatBubble(unread);
+      }
+    }
+  };
+  xhr.send();
+}
+
+function renderMensajes(msgs){
+  var lista=document.getElementById('chat-lista');
+  var empty=document.getElementById('chat-empty');
+  var listaWrap=document.getElementById('chat-lista-wrap');
+  if(!lista)return;
+
+  if(!isAdmin){
+    // Publico: no ve lista de mensajes
+    listaWrap.style.display='none';
+    return;
+  }
+
+  listaWrap.style.display='block';
+  if(!msgs||msgs.length===0){
+    lista.innerHTML='';
+    if(empty)empty.style.display='block';
+    return;
+  }
+  if(empty)empty.style.display='none';
+
+  var html='';
+  for(var i=0;i<msgs.length;i++){
+    var m=msgs[i];
+    var d=new Date(m.created_at);
+    var fecha=d.toLocaleDateString('es-AR',{day:'2-digit',month:'2-digit'})+' '+d.toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    var unreadClass=m.leido?'':'unread';
+    html+='<div class="chat-msg '+unreadClass+'" id="cmsg-'+m.id+'">';
+    html+='<div class="chat-msg-header">';
+    html+='<span class="chat-msg-name">'+escHtml(m.nombre)+'</span>';
+    html+='<span class="chat-msg-agrup">'+escHtml(m.agrupacion)+'</span>';
+    html+='<span class="chat-msg-time">'+fecha+'</span>';
+    html+='</div>';
+    html+='<div class="chat-msg-text">'+escHtml(m.mensaje)+'</div>';
+    if(m.respuesta){
+      html+='<div class="chat-msg-reply"><div class="chat-msg-reply-label">Respuesta admin</div>'+escHtml(m.respuesta)+'</div>';
+    }
+    if(isAdmin){
+      html+='<div class="chat-reply-form" id="crf-'+m.id+'">';
+      html+='<textarea class="chat-reply-input" id="cri-'+m.id+'" placeholder="Escribir respuesta..."></textarea>';
+      html+='<button class="chat-reply-send" onclick="enviarRespuesta(\''+m.id+'\')">Responder</button>';
+      html+='</div>';
+      html+='<div style="margin-top:8px;display:flex;gap:8px;">';
+      if(!m.leido){html+='<button class="btn-admin" onclick="marcarLeido(\''+m.id+'\')">✓ Marcar leído</button>';}
+      html+='<button class="btn-admin" onclick="toggleReplyForm(\''+m.id+'\')">↩ Responder</button>';
+      html+='</div>';
+    }
+    html+='</div>';
+  }
+  lista.innerHTML=html;
+}
+
+function escHtml(s){
+  if(!s)return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleReplyForm(id){
+  var f=document.getElementById('crf-'+id);
+  if(!f)return;
+  if(f.classList.contains('open')){f.classList.remove('open');}
+  else{f.classList.add('open');var inp=document.getElementById('cri-'+id);if(inp)inp.focus();}
+}
+
+function marcarLeido(id){
+  var xhr=new XMLHttpRequest();
+  xhr.open('PATCH',SUPABASE_URL+'/rest/v1/mensajes?id=eq.'+id,true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('Prefer','return=minimal');
+  xhr.onreadystatechange=function(){if(xhr.readyState===4)loadMensajes();};
+  xhr.send(JSON.stringify({leido:true}));
+}
+
+function enviarRespuesta(id){
+  var inp=document.getElementById('cri-'+id);
+  if(!inp)return;
+  var texto=inp.value.trim();
+  if(!texto){showToast('Escribí una respuesta');return;}
+  var xhr=new XMLHttpRequest();
+  xhr.open('PATCH',SUPABASE_URL+'/rest/v1/mensajes?id=eq.'+id,true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('Prefer','return=minimal');
+  xhr.onreadystatechange=function(){if(xhr.readyState===4){showToast('Respuesta enviada ✓');loadMensajes();}};
+  xhr.send(JSON.stringify({respuesta:texto,leido:true}));
+}
+
+function enviarMensaje(){
+  var nombre=document.getElementById('chat-nombre').value.trim();
+  var agrup=document.getElementById('chat-agrup').value.trim();
+  var texto=document.getElementById('chat-texto').value.trim();
+  var err=document.getElementById('chat-form-err');
+  if(!nombre||!agrup||!texto){
+    err.textContent='Por favor completá todos los campos.';
+    err.style.display='block';
+    return;
+  }
+  err.style.display='none';
+  var payload={nombre:nombre,agrupacion:agrup,mensaje:texto,leido:false,respuesta:null};
+  var xhr=new XMLHttpRequest();
+  xhr.open('POST',SUPABASE_URL+'/rest/v1/mensajes',true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('Prefer','return=minimal');
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState!==4)return;
+    if(xhr.status>=200&&xhr.status<300){
+      document.getElementById('chat-form-box').innerHTML='<div class="chat-sent-ok">✅ ¡Mensaje enviado! Te responderemos a la brevedad.</div>';
+    } else {
+      err.textContent='Error al enviar. Intentá de nuevo.';
+      err.style.display='block';
+    }
+  };
+  xhr.send(JSON.stringify(payload));
+}
+
+// Refrescar mensajes al abrir el tab chat
+var _origShowTab=showTab;
+showTab=function(name){
+  _origShowTab(name);
+  if(name==='chat'){
+    loadMensajes();
+    if(isAdmin){
+      // marcar todos como leidos cuando admin abre el chat
+      setTimeout(function(){
+        var unread=document.querySelectorAll('.chat-msg.unread');
+        if(unread.length>0){
+          var xhr=new XMLHttpRequest();
+          xhr.open('PATCH',SUPABASE_URL+'/rest/v1/mensajes?leido=eq.false',true);
+          xhr.setRequestHeader('apikey',SUPABASE_KEY);
+          xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+          xhr.setRequestHeader('Content-Type','application/json');
+          xhr.setRequestHeader('Prefer','return=minimal');
+          xhr.onreadystatechange=function(){if(xhr.readyState===4){updateChatBubble(0);loadMensajes();}};
+          xhr.send(JSON.stringify({leido:true}));
+        }
+      },300);
+    }
+  }
+};
+
+// Poll cada 30s para notificar admin de nuevos mensajes
+setInterval(function(){
+  if(!isAdmin)return;
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET',SUPABASE_URL+'/rest/v1/mensajes?leido=eq.false&select=id',true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.onreadystatechange=function(){
+    if(xhr.readyState===4&&xhr.status===200){
+      var arr=[];try{arr=JSON.parse(xhr.responseText);}catch(e){}
+      updateChatBubble(arr.length);
+    }
+  };
+  xhr.send();
+},30000);
+
 // ── ESCRITURA A SUPABASE (sincroniza cada partido modificado) ────────────
 function saveSupabase(partido){
   // partido = objeto del state.partidos
@@ -1478,6 +1706,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
     <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
     <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
+    <button class="nav-tab" id="tab-chat-nav" onclick="showTab('chat')"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-side" style="display:none">0</span></button>
   </div>
   <div class="sidebar-actions">
     <button class="btn-pdf" onclick="exportPDFContextual()">⬇ PDF</button>
@@ -1607,6 +1836,32 @@ window.addEventListener('DOMContentLoaded',function(){
   <div class="gastro-intro">Los puestos de comida y bebida disponibles durante el torneo.</div>
   <div class="gastro-grid" id="gastro-grid">
     <div class="empty-state"><div class="empty-icon">🍖</div><p>Próximamente los puestos gastronómicos</p></div>
+  </div>
+</div>
+
+<div class="tab-panel" id="tab-chat">
+  <div class="section-title">💬 Chat</div>
+
+  <!-- FORM PUBLICO -->
+  <div class="chat-wrap">
+    <div class="chat-form" id="chat-form-box">
+      <div class="chat-form-title">Dejanos tu mensaje</div>
+      <div class="chat-form-row">
+        <input class="chat-input" id="chat-nombre" placeholder="Tu nombre" maxlength="60">
+        <input class="chat-input" id="chat-agrup" placeholder="Tu agrupación" maxlength="80">
+      </div>
+      <div class="chat-form-row one">
+        <textarea class="chat-input" id="chat-texto" placeholder="Tu mensaje..." maxlength="500"></textarea>
+      </div>
+      <div id="chat-form-err" style="color:var(--red);font-size:13px;margin-bottom:8px;display:none"></div>
+      <button class="chat-send-btn" onclick="enviarMensaje()">Enviar mensaje</button>
+    </div>
+
+    <!-- MENSAJES PUBLICOS (solo admin los ve; publico ve confirmacion) -->
+    <div id="chat-lista-wrap">
+      <div id="chat-lista" class="chat-msg-list"></div>
+      <div class="chat-empty" id="chat-empty" style="display:none">No hay mensajes aún.</div>
+    </div>
   </div>
 </div>
 
@@ -1921,6 +2176,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-mapa-mob" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
     <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
     <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
+    <button class="nav-tab" id="tab-chat-mob" onclick="showTab('chat')" style="position:relative"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-mob" style="display:none;position:absolute;top:4px;right:4px">0</span></button>
   </div>
 </nav>
 
