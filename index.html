@@ -1706,7 +1706,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
     <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
     <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
-    <button class="nav-tab" id="tab-chat-nav" onclick="showTab('chat')"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-side" style="display:none">0</span></button>
+    <button class="nav-tab" id="tab-chat-nav" onclick="showTab('chat')" style="position:relative;flex-wrap:wrap;"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-side" style="display:none;position:absolute;top:6px;right:8px;">0</span></button>
   </div>
   <div class="sidebar-actions">
     <button class="btn-pdf" onclick="exportPDFContextual()">⬇ PDF</button>
@@ -2176,7 +2176,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-mapa-mob" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
     <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
     <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
-    <button class="nav-tab" id="tab-chat-mob" onclick="showTab('chat')" style="position:relative"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-mob" style="display:none;position:absolute;top:4px;right:4px">0</span></button>
+    <button class="nav-tab" id="tab-chat-mob" onclick="showTab('chat')" style="position:relative"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-mob" style="display:none;position:absolute;top:3px;right:6px;font-size:9px;width:16px;height:16px;">0</span></button>
   </div>
 </nav>
 
