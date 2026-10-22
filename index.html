@@ -407,7 +407,7 @@ var PARTIDOS_DEFAULT=[
 var REFEREES_DEFAULT=['Alejandro Gómez','Bruno Salinas','Carlos Méndez','Diego Torres','Eduardo Ruiz','Federico López','Gastón Herrera','Hernán Castro','Ignacio Peralta','Juan Martínez','Lucas Fernández','Marcos Díaz','Nicolás Ramírez','Pablo García','Rodrigo Vega'];
 var state={partidos:[],equipos:[],gastro:[],sponsors:[],referees:[]};
 
-function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);else state.partidos=PARTIDOS_DEFAULT.slice();if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
+function loadState(){try{var p=localStorage.getItem('nave56_p');var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(p)state.partidos=JSON.parse(p);else state.partidos=PARTIDOS_DEFAULT.slice();if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();state.equipos=state.equipos.filter(function(e){return e.cat!=='C';});if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
 function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));localStorage.setItem('nave56_rf',JSON.stringify(state.referees));}catch(e){}}
 
 function showTab(name){
@@ -464,7 +464,7 @@ function submitAdminLogin(){
 }
 function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
 
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2500);}
+function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._toastT);window._toastT=setTimeout(function(){t.classList.remove('show');},msg.indexOf('❌')===0?6000:2500);}
 
 function setFilter(f,btn){
   currentFilter=f;
@@ -849,6 +849,11 @@ function toggleTipoField(cat){
   var f=document.getElementById('p-tipo-field');
   if(f)f.style.display=cat==='A'?'':'none';
 }
+function catDeEquipo(nombre){
+  var lista=state.equipos&&state.equipos.length?state.equipos:EQUIPOS_DEFAULT;
+  for(var i=0;i<lista.length;i++){if(lista[i].nombre===nombre&&lista[i].cat)return lista[i].cat;}
+  var m=/\s([AB])$/.exec(String(nombre||'').trim());return m?m[1]:'';
+}
 function addPartido(){
   var local=document.getElementById('p-local').value;
   var visit=document.getElementById('p-visit').value;
@@ -862,6 +867,21 @@ function addPartido(){
   var touch1=document.getElementById('p-touch1')?document.getElementById('p-touch1').value:'';
   var touch2=document.getElementById('p-touch2')?document.getElementById('p-touch2').value:'';
   if(!local||!visit||local===visit){showToast('Seleccioná dos equipos distintos');return;}
+  // Regla 1: misma categoría (A con A, B con B)
+  var catL=catDeEquipo(local),catV=catDeEquipo(visit);
+  if(catL&&catV&&catL!==catV){showToast('❌ No se puede: '+local+' es categoría '+catL+' y '+visit+' es categoría '+catV+'. Solo A vs A o B vs B.');return;}
+  if(catL&&catL!==cat){cat=catL;var sc=document.getElementById('p-cat');if(sc)sc.value=cat;}
+  if(!hora){showToast('Ingresá la hora del partido');return;}
+  // Regla 2: no duplicar cancha + día + hora
+  var choque=null,choqueEq=null;
+  state.partidos.forEach(function(p){
+    if(String(p.dia)!==String(dia)||p.hora!==hora)return;
+    if(String(p.cancha)===String(cancha))choque=p;
+    if(p.local===local||p.visitante===local||p.local===visit||p.visitante===visit)choqueEq=p;
+  });
+  if(choque){showToast('❌ La cancha '+cancha+' ya tiene partido el '+(dia=='1'?'sábado':'domingo')+' a las '+hora+' ('+choque.local+' vs '+choque.visitante+')');return;}
+  // Regla 3: un equipo no puede jugar dos partidos a la misma hora
+  if(choqueEq){showToast('❌ Un equipo ya juega a esa hora: '+choqueEq.local+' vs '+choqueEq.visitante+' (cancha '+choqueEq.cancha+')');return;}
   state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,tipo:tipo,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
