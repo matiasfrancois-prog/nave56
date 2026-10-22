@@ -279,6 +279,7 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .btn-open-admin{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:7px 14px;color:var(--fg);font-size:13px;cursor:pointer;}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--accent);border-radius:8px;padding:10px 20px;font-size:14px;font-weight:500;z-index:999;transition:transform .3s ease;pointer-events:none;}
 .toast.show{transform:translateX(-50%) translateY(0);}
+.nav-tab.nav-ext{text-decoration:none;color:inherit;}
 </style>
 <script>
 var SUPABASE_URL='https://wpguxgwscukvdmjayxlf.supabase.co';
@@ -1846,6 +1847,8 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
     <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
     <button class="nav-tab" id="tab-chat-nav" onclick="showTab('chat')" style="position:relative;flex-wrap:wrap;"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-side" style="display:none;position:absolute;top:6px;right:8px;">0</span></button>
+    <a class="nav-tab nav-ext" id="tab-tienda-side" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras</span></a>
+    <a class="nav-tab nav-ext" id="tab-ig-side" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram</span></a>
   </div>
   <div class="sidebar-actions">
     <button class="btn-pdf" onclick="exportPDFContextual()">⬇ PDF</button>
@@ -2324,6 +2327,8 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
     <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
     <button class="nav-tab" id="tab-chat-mob" onclick="showTab('chat')" style="position:relative"><span class="tab-icon">💬</span><span class="tab-label">Chat</span><span class="chat-notif-bubble" id="chat-bubble-mob" style="display:none;position:absolute;top:3px;right:6px;font-size:9px;width:16px;height:16px;">0</span></button>
+    <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras</span></a>
+    <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram</span></a>
   </div>
 </nav>
 
