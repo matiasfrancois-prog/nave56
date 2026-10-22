@@ -849,6 +849,8 @@ function toggleTipoField(cat){
   var f=document.getElementById('p-tipo-field');
   if(f)f.style.display=cat==='A'?'':'none';
 }
+var DESCANSO_MIN=120; // minutos mínimos entre el inicio de dos partidos del mismo equipo
+function horaAMin(hh){var m=/^(\d{1,2}):(\d{2})/.exec(String(hh||''));return m?parseInt(m[1],10)*60+parseInt(m[2],10):0;}
 function catDeEquipo(nombre){
   var lista=state.equipos&&state.equipos.length?state.equipos:EQUIPOS_DEFAULT;
   for(var i=0;i<lista.length;i++){if(lista[i].nombre===nombre&&lista[i].cat)return lista[i].cat;}
@@ -882,6 +884,15 @@ function addPartido(){
   if(choque){showToast('❌ La cancha '+cancha+' ya tiene partido el '+(dia=='1'?'sábado':'domingo')+' a las '+hora+' ('+choque.local+' vs '+choque.visitante+')');return;}
   // Regla 3: un equipo no puede jugar dos partidos a la misma hora
   if(choqueEq){showToast('❌ Un equipo ya juega a esa hora: '+choqueEq.local+' vs '+choqueEq.visitante+' (cancha '+choqueEq.cancha+')');return;}
+  // Regla 4: un equipo nunca juega dos partidos seguidos (mínimo DESCANSO_MIN entre inicios)
+  var tNew=horaAMin(hora),seguido=null,eqSeg='';
+  state.partidos.forEach(function(p){
+    if(seguido||String(p.dia)!==String(dia))return;
+    var d=Math.abs(horaAMin(p.hora)-tNew);
+    if(d>=DESCANSO_MIN)return;
+    [local,visit].forEach(function(eq){if(!seguido&&(p.local===eq||p.visitante===eq)){seguido=p;eqSeg=eq;}});
+  });
+  if(seguido){showToast('❌ '+eqSeg+' ya juega a las '+seguido.hora+' ('+seguido.local+' vs '+seguido.visitante+'). No puede jugar partidos seguidos: dejá al menos '+(DESCANSO_MIN/60)+' h entre sus partidos.');return;}
   state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,tipo:tipo,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
   saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
 }
