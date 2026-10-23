@@ -288,6 +288,12 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .mieq-seg button+button{border-left:1px solid var(--border);}
 .mieq-seg button.on{background:var(--accent);color:#000;}
 .mieq-seg button:disabled{opacity:.35;cursor:not-allowed;}
+.mieq-copas{display:flex;flex-direction:column;gap:4px;margin-left:auto;}
+.mieq-inst{display:flex;flex-wrap:wrap;gap:6px;}
+.mieq-inst button{background:var(--card);color:var(--fg);border:1px solid var(--border);border-radius:20px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer;}
+.mieq-inst button.on{background:var(--accent);border-color:var(--accent);color:#000;}
+.mieq-copas-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);}
+@media(max-width:700px){.mieq-copas{margin-left:0;width:100%;}}
 .mieq-fav{background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:10px;padding:10px 14px;font-size:14px;font-weight:600;cursor:pointer;}
 .mieq-fav.on{background:var(--accent);color:#000;}
 .mieq-head{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;}
@@ -355,7 +361,7 @@ var AGRUPACIONES=[
 
 
 // ===== MI EQUIPO / FAVORITO =====
-var miEq={agrup:'',cat:'AB'};
+var miEq={agrup:'',cat:'AB',copa:''};
 var miEqFav=null;
 try{var _f=localStorage.getItem('nave56_fav');if(_f){miEqFav=JSON.parse(_f);if(miEqFav&&miEqFav.agrup){miEq.agrup=miEqFav.agrup;miEq.cat=miEqFav.cat||'AB';}}}catch(e){miEqFav=null;}
 function eqBase(n){return String(n||'').trim().replace(/\s+[AB]$/,'');}
@@ -363,7 +369,8 @@ function eqCatDe(n){var m=/\s([AB])$/.exec(String(n||'').trim());return m?m[1]:'
 function miEqAgrupaciones(){
   var lista=state.equipos&&state.equipos.length?state.equipos:EQUIPOS_DEFAULT;var map={};
   lista.forEach(function(e){var nm=e.nombre||e;var b=eqBase(nm);var c=e.cat||eqCatDe(nm);if(!b||c==='C')return;if(!map[b])map[b]={};map[b][c]=nm;});
-  (state.partidos||[]).forEach(function(p){[p.local,p.visitante].forEach(function(nm){var b=eqBase(nm),c=eqCatDe(nm);if(!b||!c)return;if(!map[b])map[b]={};if(!map[b][c])map[b][c]=nm;});});
+  var conocidas={};(typeof AGRUPACIONES!=='undefined'?AGRUPACIONES:[]).forEach(function(a){conocidas[a.nombre]=1;});
+  Object.keys(map).forEach(function(b){if(conocidas[b])return;if(!/^[A-ZÁÉÍÓÚÑ0-9 ]+$/.test(b)||/ZONA|FINAL|SEMI|CUARTOS|GANADOR|PERDEDOR|^\d/.test(b))delete map[b];});
   return map;
 }
 function miEqEquipos(){
@@ -377,8 +384,9 @@ function esFavPartido(p){
   var c=miEqFav.cat||'AB';
   return [p.local,p.visitante].some(function(nm){return eqBase(nm)===miEqFav.agrup&&(c==='AB'||eqCatDe(nm)===c);});
 }
-function miEqSelect(v){miEq.agrup=v;var g=miEqAgrupaciones()[v]||{};if(miEq.cat==='A'&&!g.A)miEq.cat=g.B?'B':'AB';if(miEq.cat==='B'&&!g.B)miEq.cat=g.A?'A':'AB';renderMiEquipo();}
-function miEqCat(c){miEq.cat=c;renderMiEquipo();}
+function miEqSelect(v){miEq.agrup=v;miEq.copa='';var g=miEqAgrupaciones()[v]||{};if(miEq.cat==='A'&&!g.A)miEq.cat=g.B?'B':'AB';if(miEq.cat==='B'&&!g.B)miEq.cat=g.A?'A':'AB';renderMiEquipo();}
+function miEqCat(c){miEq.cat=c;miEq.copa='';renderMiEquipo();}
+function miEqCopa(c){miEq.copa=miEq.copa===c?'':c;renderMiEquipo();}
 function miEqToggleFav(){
   if(!miEq.agrup){showToast('Elegí primero tu agrupación');return;}
   var esFav=miEqFav&&miEqFav.agrup===miEq.agrup&&(miEqFav.cat||'AB')===miEq.cat;
@@ -401,6 +409,8 @@ function renderMiEquipo(){
   bA.className=miEq.cat==='A'?'on':'';bB.className=miEq.cat==='B'?'on':'';bAB.className=miEq.cat==='AB'?'on':'';
   var fb=document.getElementById('mieq-fav');var esFav=miEqFav&&miEqFav.agrup===miEq.agrup&&(miEqFav.cat||'AB')===miEq.cat;
   fb.className='mieq-fav'+(esFav?' on':'');fb.textContent=esFav?'⭐ Siguiendo':'☆ Seguir';
+  ['recre','grupo','oro','plata','bronce'].forEach(function(c){var b=document.getElementById('mieq-c-'+c);if(b)b.className=miEq.copa===c?'on':'';});
+  if(miEq.copa){renderCopa(body);return;}
   if(!miEq.agrup){body.innerHTML='<div class="empty-state"><div class="empty-icon">⭐</div><p>Elegí tu agrupación para ver sus partidos, resultados y canchas.<br>Tocá <b>☆ Seguir</b> para dejarla como favorita en este celular.</p></div>';return;}
   var eqs=miEqEquipos();
   var ps=(state.partidos||[]).filter(function(p){return p.cat!=='C'&&(eqs.indexOf(p.local)>=0||eqs.indexOf(p.visitante)>=0);}).sort(miEqOrd);
@@ -437,6 +447,33 @@ function renderMiEquipo(){
   body.innerHTML=html;
 }
 
+
+function renderCopa(body){
+  var nombres={recre:'🎉 Recreativo',grupo:'📊 Zona clasificatoria',oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'};
+  var ps=(state.partidos||[]).filter(function(p){
+    if(p.cat==='C')return false;
+    if(miEq.copa==='recre')return p.cat==='B';
+    if(miEq.copa==='grupo')return p.cat==='A'&&(!p.tipo||p.tipo==='grupo');
+    return p.cat==='A'&&p.tipo===miEq.copa;
+  }).sort(miEqOrd);
+  var subt=miEq.copa==='recre'?'Categoría B · todos los partidos recreativos':miEq.copa==='grupo'?'Categoría A · fase de grupos, define el pase a las copas':'Categoría A · los partidos aparecen a medida que se definen los cruces';
+  var html='<div class="mieq-head"><img src="'+NAVE56_LOGO+'" alt=""><div><div class="mieq-name">'+nombres[miEq.copa]+'</div><div class="mieq-stats"><span>'+subt+'</span></div></div></div>';
+  if(!ps.length){body.innerHTML=html+'<div class="empty-state"><div class="empty-icon">🏆</div><p>Todavía no hay partidos cargados en esta instancia.'+(miEq.copa==='oro'||miEq.copa==='plata'||miEq.copa==='bronce'?'<br>Se cargan cuando termina la zona clasificatoria.':'')+'</p></div>';return;}
+  function fila(p){
+    var dia=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
+    var r='<div class="mieq-row'+(p.estado==='live'?' live':'')+'"><div class="mieq-when">'+dia+'<b>'+(p.hora||'')+'</b></div>';
+    r+='<div class="mieq-mid"><div class="mieq-vs">'+(p.local||'?')+' vs '+(p.visitante||'?')+'</div><div class="mieq-sub">'+miEqCanchaTxt(p.cancha)+(p.referee?' · 🏳 '+p.referee:'')+'</div></div>';
+    if(p.estado==='finalizado')r+='<span class="mieq-res e">'+(p.score_local||0)+'–'+(p.score_visit||0)+'</span>';
+    else if(p.estado==='live')r+='<span class="badge badge-live">● '+(p.score_local||0)+'–'+(p.score_visit||0)+'</span>';
+    else r+='<button class="mieq-map" onclick="verCanchaEnMapa('+(parseInt(p.cancha,10)||0)+',event)">📍 Ver cancha</button>';
+    return r+'</div>';
+  }
+  var live=ps.filter(function(p){return p.estado==='live';}),prox=ps.filter(function(p){return p.estado==='proximo';}),fin=ps.filter(function(p){return p.estado==='finalizado';});
+  if(live.length)html+='<div class="mieq-sec">🟢 Jugando ahora</div>'+live.map(fila).join('');
+  if(prox.length)html+='<div class="mieq-sec">⏭ Próximos</div>'+prox.map(fila).join('');
+  if(fin.length)html+='<div class="mieq-sec">✅ Resultados</div>'+fin.slice().reverse().map(fila).join('');
+  body.innerHTML=html;
+}
 function renderAgrupaciones(){
   var grid=document.getElementById('agrup-grid');
   if(!grid)return;
@@ -2233,7 +2270,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
       <div class="form-field"><label>División</label><select id="p-cat" onchange="toggleTipoField(this.value)"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option></select></div>
-      <div class="form-field" id="p-tipo-field" style="display:none;"><label>Tipo <span style="font-size:11px;opacity:.6">(solo Cat A)</span></label><select id="p-tipo"><option value="grupo">Fase de grupos</option><option value="oro">🥇 Copa de Oro</option><option value="plata">🥈 Copa de Plata</option><option value="bronce">🥉 Copa de Bronce</option></select></div>
+      <div class="form-field" id="p-tipo-field" style="display:none;"><label>Tipo <span style="font-size:11px;opacity:.6">(solo Cat A)</span></label><select id="p-tipo"><option value="grupo">Zona clasificatoria</option><option value="oro">🥇 Copa de Oro</option><option value="plata">🥈 Copa de Plata</option><option value="bronce">🥉 Copa de Bronce</option></select></div>
       <div class="form-field"><label>Referee</label><select id="p-referee"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 1 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch1"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 2 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch2"><option value="">-- Sin asignar --</option></select></div>
@@ -2333,6 +2370,10 @@ window.addEventListener('DOMContentLoaded',function(){
       <button id="mieq-A" onclick="miEqCat('A')">A</button><button id="mieq-B" onclick="miEqCat('B')">B</button><button id="mieq-AB" onclick="miEqCat('AB')">A + B</button>
     </div>
     <button class="mieq-fav" id="mieq-fav" onclick="miEqToggleFav()">☆ Seguir</button>
+    <div class="mieq-copas">
+      <span class="mieq-copas-lbl">🏆 Ver por instancia</span>
+      <div class="mieq-inst"><button id="mieq-c-recre" onclick="miEqCopa('recre')">🎉 Recreativo</button><button id="mieq-c-grupo" onclick="miEqCopa('grupo')">📊 Zona clasificatoria</button><button id="mieq-c-oro" onclick="miEqCopa('oro')">🥇 Copa Oro</button><button id="mieq-c-plata" onclick="miEqCopa('plata')">🥈 Copa Plata</button><button id="mieq-c-bronce" onclick="miEqCopa('bronce')">🥉 Copa Bronce</button></div>
+    </div>
   </div>
   <div id="mieq-body"></div>
 </div>
