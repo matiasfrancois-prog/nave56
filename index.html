@@ -1191,12 +1191,12 @@ function planillaDigits(str,n){
 }
 function planillaCk(on,label){return '<span class="ck"><i class="'+(on?'on':'')+'">'+(on?'✕':'')+'</i>'+label+'</span>';}
 function planillaCard(p,num){
-  var dia=String(p.dia||''),cat=p.cat||'A',hora=String(p.hora||'').replace(':','');
+  var dia=String(p.dia||''),cat=p._blank?'':(p.cat||'A'),hora=String(p.hora||'').replace(':','');
   var tipoTxt=cat==='A'&&p.tipo&&p.tipo!=='grupo'?({oro:'COPA DE ORO',plata:'COPA DE PLATA',bronce:'COPA DE BRONCE'}[p.tipo]||''):'';
   var jl=[p.touch1,p.touch2].filter(function(x){return x;}).join(' / ');
   var h='<div class="card"><div class="mk tl"></div><div class="mk tr"></div><div class="mk bl"></div><div class="mk br"></div>';
   h+='<div class="hd"><img class="l" src="'+PLANILLA_LOGO+'"><div class="t"><h1>PLANILLA DE PARTIDO</h1><p>NAVE56 · Club Hindú · 21–22 nov 2026'+(tipoTxt?' · <b>'+tipoTxt+'</b>':'')+'<br>Completar en IMPRENTA con birome negra</p></div>';
-  h+='<div class="id"><small>N° PARTIDO</small><div class="dg">'+planillaDigits(planillaNum(num),3)+'</div></div></div>';
+  h+='<div class="id"><small>N° PARTIDO</small><div class="dg">'+planillaDigits(p._blank?'':planillaNum(num),3)+'</div></div></div>';
   h+='<div class="row"><div class="box" style="flex:1.1"><div class="lbl">Día</div><div class="opts">'+planillaCk(dia==='1','SÁB 21')+planillaCk(dia==='2','DOM 22')+'</div></div>';
   h+='<div class="box" style="flex:1"><div class="lbl">Hora</div><div class="dg">'+planillaDigits(hora.substr(0,2),2)+'<span>:</span>'+planillaDigits(hora.substr(2,2),2)+'</div></div>';
   h+='<div class="box" style="flex:1"><div class="lbl">Categoría</div><div class="opts">'+planillaCk(cat==='A','A')+planillaCk(cat==='B','B')+'</div></div></div>';
@@ -1242,6 +1242,17 @@ function planillaCSS(){
   '.bar{position:sticky;top:0;background:#1e4a8c;color:#fff;padding:10px;text-align:center;font-size:14px;z-index:5;margin-bottom:8mm}'+
   '.bar button{background:#c9a227;border:none;border-radius:6px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer;margin-left:10px}'+
   '@media print{body{background:#fff}.bar{display:none}.sheet{margin:0}}';
+}
+function imprimirPlanillasBlanco(){
+  var n=parseInt((document.getElementById('pl-blanco-cant')||{}).value,10)||1;
+  if(n<1)n=1;if(n>100)n=100;
+  var card=planillaCard({_blank:true},0);
+  var body='<div class="bar">'+n+' hoja(s) A4 · '+(n*2)+' planillas EN BLANCO<button onclick="window.print()">🖨 Imprimir</button></div>';
+  for(var k=0;k<n;k++){body+='<div class="sheet">'+card+card+'</div>';}
+  var html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planillas en blanco NAVE56</title><style>'+planillaCSS()+'</style></head><body>'+body+'</body></html>';
+  var w=window.open('','_blank');
+  if(!w){showToast('Permití ventanas emergentes para imprimir');return;}
+  w.document.open();w.document.write(html);w.document.close();
 }
 function planillaAbrir(indices,titulo){
   if(!indices.length){showToast('No hay partidos para imprimir');return;}
@@ -2113,6 +2124,12 @@ window.addEventListener('DOMContentLoaded',function(){
       </div>
       <label style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:8px;"><input type="checkbox" id="pl-prox" checked> Excluir partidos finalizados</label>
       <button class="btn-save" onclick="imprimirPlanillasFiltro()" style="width:100%;">🖨 Generar planillas para imprimir</button>
+      <div style="border-top:1px dashed var(--border);margin:12px 0 10px;"></div>
+      <div style="font-weight:700;font-size:13px;margin-bottom:6px;">📄 Planillas en blanco</div>
+      <div style="display:flex;gap:8px;align-items:flex-end;">
+        <div class="form-field" style="flex:1;margin:0;"><label>Cantidad de hojas A4 <span style="font-size:11px;opacity:.6">(2 planillas por hoja)</span></label><input type="number" id="pl-blanco-cant" min="1" max="100" value="5"></div>
+        <button class="btn-save" onclick="imprimirPlanillasBlanco()" style="flex:1;">🖨 Imprimir en blanco</button>
+      </div>
     </div>
   </div>
 
