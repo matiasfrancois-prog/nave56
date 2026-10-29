@@ -321,6 +321,10 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .partido-card.fav{border-color:var(--accent);}
 .fav-star{color:var(--accent);margin-right:4px;}
 @media(max-width:600px){.mieq-bar select{min-width:0;width:100%;}.mieq-when{min-width:60px;}}
+
+.crono-cal-btn{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);border-radius:20px;color:#c8a84b;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:background .15s;}
+.crono-cal-btn:hover{background:rgba(200,168,75,.25);}
+
 </style>
 <script>
 var SUPABASE_URL='https://wpguxgwscukvdmjayxlf.supabase.co';
@@ -1522,7 +1526,86 @@ function delSponsor(i){state.sponsors.splice(i,1);saveState();renderSponsors();}
 
 function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;state={partidos:[],equipos:[],gastro:[],sponsors:[]};saveState();renderPartidos();renderCanchas();renderHistorial();renderMapa();renderSponsors();renderGastro();showToast('Datos borrados');}
 
-function exportPDF(){
+
+
+  function addEventToCalendar(dt, dte, titulo, desc, lugar){
+    var lines=[
+      'BEGIN:VCALENDAR','VERSION:2.0',
+      'PRODID:-//NAVE56//NAVE56 Torneo 2026//ES',
+      'CALSCALE:GREGORIAN','METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      'UID:nave56-'+Date.now()+'@nave56.com.ar',
+      'DTSTART;TZID=America/Argentina/Buenos_Aires:'+dt,
+      'DTEND;TZID=America/Argentina/Buenos_Aires:'+dte,
+      'SUMMARY:'+titulo,
+      'DESCRIPTION:'+desc.replace(/,/g,'\\,'),
+      'LOCATION:'+lugar,
+      'BEGIN:VALARM','TRIGGER:-PT30M','ACTION:DISPLAY',
+      'DESCRIPTION:Recordatorio: '+titulo,
+      'END:VALARM','END:VEVENT','END:VCALENDAR'
+    ];
+    var blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='NAVE56-evento.ics';
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('📅 Evento agregado al calendario');
+  }
+
+  function generateICS(){
+    var eventos=[
+      // Viernes 20 Nov
+      {dt:'20261120T140000',dte:'20261120T150000',titulo:'NAVE56 · Almuerzo de Presidentes',desc:'Almuerzo de presidentes en Hindú Club. Reservar con antelación.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261120T170000',dte:'20261120T180000',titulo:'NAVE56 · Asamblea de Presidentes',desc:'Asamblea de presidentes de las agrupaciones participantes.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261120T180000',dte:'20261120T190000',titulo:'NAVE56 · Reunión de Árbitros y Capitanes',desc:'Reunión conjunta de árbitros y capitanes. Coordinación de criterios y reglamento.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      // Sábado 21 Nov
+      {dt:'20261121T090000',dte:'20261121T093000',titulo:'NAVE56 · Recepción de Delegaciones',desc:'Recepción de todas las delegaciones en Hindú Club.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T093000',dte:'20261121T100000',titulo:'NAVE56 · Himno Nacional — Apertura Oficial',desc:'Himno Nacional Argentino, palabras de bienvenida y presentación oficial del torneo.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T100000',dte:'20261121T103000',titulo:'NAVE56 · Desfile de Equipos',desc:'Desfile con todos los equipos participantes del torneo.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T103000',dte:'20261121T110000',titulo:'NAVE56 · Plantación de Árboles',desc:'Acto simbólico de plantación de árboles como legado del torneo.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T110000',dte:'20261121T200000',titulo:'NAVE56 · Partidos Día 1 — Rondas clasificatorias',desc:'Inicio de partidos. Categorías A, B y C. 7 canchas simultáneas. Horarios exactos por cancha sujetos a fixture final.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T120000',dte:'20261121T150000',titulo:'NAVE56 · Buffet Día 1',desc:'Buffet para jugadores, cuerpos técnicos e invitados.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261121T200000',dte:'20261121T230000',titulo:'NAVE56 · Tercer Tiempo — Día 1',desc:'Cierre del primer día. Bar, quincho y espacio de encuentro entre agrupaciones.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      // Domingo 22 Nov
+      {dt:'20261122T090000',dte:'20261122T180000',titulo:'NAVE56 · Partidos Día 2 — Cruces y Finales',desc:'Rondas clasificatorias, semifinales y final del torneo. Horarios exactos sujetos a fixture final.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261122T120000',dte:'20261122T150000',titulo:'NAVE56 · Buffet Día 2',desc:'Buffet para jugadores, cuerpos técnicos e invitados.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261122T180000',dte:'20261122T190000',titulo:'NAVE56 · Ceremonia de Premiación',desc:'Entrega de trofeos, premios individuales y cierre oficial del torneo NAVE56.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261122T190000',dte:'20261122T220000',titulo:'NAVE56 · Tercer Tiempo Final — Cierre NAVE56',desc:'Festejo final de todos los participantes. Bar, quincho y música.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'},
+      {dt:'20261122T210000',dte:'20261122T235900',titulo:'NAVE56 · Cena Oficial de Cierre',desc:'Cena oficial de cierre. Brindis final con todos los participantes del torneo NAVE56.',lugar:'Club Hindú, Don Torcuato, Buenos Aires'}
+    ];
+    var uid_base=Date.now();
+    var lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//NAVE56//NAVE56 Torneo 2026//ES','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:NAVE56 · Torneo Rugby 2026','X-WR-TIMEZONE:America/Argentina/Buenos_Aires'];
+    for(var i=0;i<eventos.length;i++){
+      var ev=eventos[i];
+      lines.push('BEGIN:VEVENT');
+      lines.push('UID:nave56-'+uid_base+'-'+i+'@nave56.com.ar');
+      lines.push('DTSTART;TZID=America/Argentina/Buenos_Aires:'+ev.dt);
+      lines.push('DTEND;TZID=America/Argentina/Buenos_Aires:'+ev.dte);
+      lines.push('SUMMARY:'+ev.titulo);
+      lines.push('DESCRIPTION:'+ev.desc.replace(/,/g,'\,'));
+      lines.push('LOCATION:'+ev.lugar);
+      lines.push('BEGIN:VALARM');
+      lines.push('TRIGGER:-PT30M');
+      lines.push('ACTION:DISPLAY');
+      lines.push('DESCRIPTION:Recordatorio NAVE56: '+ev.titulo);
+      lines.push('END:VALARM');
+      lines.push('END:VEVENT');
+    }
+    lines.push('END:VCALENDAR');
+    var ics=lines.join('\r\n');
+    var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='NAVE56-2026.ics';
+    document.body.appendChild(a);a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('📅 Calendario descargado · Abrilo para importarlo');
+  }
+
+  function exportPDF(){
   showToast('Generando PDF…');
   try{
     var doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -2445,6 +2528,15 @@ window.addEventListener('DOMContentLoaded',function(){
   <div class="section-title">📅 Cronograma</div>
   <div class="crono-note">📍 Viernes 20, Sábado 21 y Domingo 22 de Noviembre 2026 · Club Hindú, Don Torcuato</div>
 
+  <!-- BOTÓN DESCARGA CALENDARIO -->
+  <div style="margin:0 0 18px 0;">
+    <button onclick="generateICS()" style="width:100%;padding:14px 16px;background:linear-gradient(135deg,#c8a84b,#e8c870);border:none;border-radius:12px;color:#0a0e14;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(200,168,75,.35);letter-spacing:.3px;">
+      <span style="font-size:20px;">📲</span>
+      Agregar todo al calendario del celu
+    </button>
+    <div style="text-align:center;font-size:11px;color:var(--fg-muted,#8b949e);margin-top:6px;">Descarga un archivo .ics · Abrilo y se importa a tu calendario con alertas automáticas</div>
+  </div>
+
   <!-- VIERNES 20 -->
   <div class="crono-day">
     <div class="crono-day-header">
@@ -2458,7 +2550,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item reunion">
         <div class="crono-time">14:00</div>
         <div>
-          <div class="crono-title">Almuerzo de Presidentes</div>
+          <div class="crono-title">Almuerzo de Presidentes</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261120T140000','20261120T150000','NAVE56 · Almuerzo de Presidentes','Almuerzo de presidentes en Hindú Club','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Almuerzo de presidentes en Hindú Club. Se debe reservar con antelación.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
           <span class="crono-badge crono-badge-reunion">🍽 Almuerzo oficial</span>
@@ -2467,7 +2559,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item reunion">
         <div class="crono-time">17:00</div>
         <div>
-          <div class="crono-title">Asamblea de Presidentes</div>
+          <div class="crono-title">Asamblea de Presidentes</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261120T170000','20261120T180000','NAVE56 · Asamblea de Presidentes','Asamblea de presidentes de las agrupaciones participantes','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Asamblea de presidentes de las agrupaciones participantes en Hindú Club.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
           <span class="crono-badge crono-badge-reunion">🤝 Reunión oficial</span>
@@ -2476,7 +2568,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item reunion">
         <div class="crono-time">18:00</div>
         <div>
-          <div class="crono-title">Reunión de Árbitros y Capitanes</div>
+          <div class="crono-title">Reunión de Árbitros y Capitanes</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261120T180000','20261120T190000','NAVE56 · Reunión de Árbitros y Capitanes','Reunión conjunta de árbitros y capitanes','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Reunión conjunta de árbitros y capitanes en Hindú Club. Coordinación de criterios y reglamento de juego.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
           <span class="crono-badge crono-badge-reunion">🏳 Árbitros y Capitanes</span>
@@ -2498,7 +2590,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">09:00</div>
         <div>
-          <div class="crono-title">Recepción de Delegaciones</div>
+          <div class="crono-title">Recepción de Delegaciones</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T090000','20261121T093000','NAVE56 · Recepción de Delegaciones','Recepción de todas las delegaciones en Hindú Club','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Recepción de todas las delegaciones en Hindú Club.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
         </div>
@@ -2506,7 +2598,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">09:30</div>
         <div>
-          <div class="crono-title">🎺 Himno Nacional Argentino</div>
+          <div class="crono-title">🎺 Himno Nacional Argentino</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T093000','20261121T100000','NAVE56 · 🎺 Himno Nacional Argentino','Himno Nacional y apertura oficial del Torneo NAVE56','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Entonación del Himno Nacional Argentino a cargo de la Banda de Campo de Mayo. Palabras de bienvenida del Presidente de la AUVAR Sr. Miguel Regginato y del Presidente de la sub comisión de rugby de Hindú Club Sr. Francisco Fernandez Miranda.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
         </div>
@@ -2514,7 +2606,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item">
         <div class="crono-time">09:30</div>
         <div>
-          <div class="crono-title">🌳 Plantación de Árbol</div>
+          <div class="crono-title">🌳 Plantación de Árbol</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T103000','20261121T110000','NAVE56 · 🌳 Plantación de Árbol','Acto simbólico de plantación de árbol como legado del torneo','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Plantación de un árbol en memoria de los Jugadores Veteranos fallecidos en el transcurso del último año.</div>
           <span class="crono-badge crono-badge-lugar">📍 Club Hindú</span>
         </div>
@@ -2522,7 +2614,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">10:30</div>
         <div>
-          <div class="crono-title">🏳 Desfile de Agrupaciones</div>
+          <div class="crono-title">🏳 Desfile de Agrupaciones</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T100000','20261121T103000','NAVE56 · 🏳 Desfile de Agrupaciones','Desfile con todos los equipos participantes','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Desfile de todas las agrupaciones en la Cancha N°1 siguiendo el orden sorteado previamente.</div>
           <span class="crono-badge crono-badge-lugar">🏟 Cancha 1</span>
         </div>
@@ -2530,7 +2622,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">11:30</div>
         <div>
-          <div class="crono-title">🏉 Inicio de Partidos</div>
+          <div class="crono-title">🏉 Inicio de Partidos</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T110000','20261121T200000','NAVE56 · 🏉 Inicio de Partidos','Inicio de partidos Categorías A B y C. 7 canchas simultáneas','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Inicio de los partidos en las 7 canchas en forma simultánea. Cada cancha contará con hidratación permanente.</div>
           <span class="crono-badge crono-badge-lugar">🏟 7 Canchas</span>
         </div>
@@ -2538,14 +2630,14 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">13:00</div>
         <div>
-          <div class="crono-title">🍽 Apertura Gastronomía — Día 1</div>
+          <div class="crono-title">🍽 Apertura Gastronomía — Día 1</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T120000','20261121T150000','NAVE56 · 🍽 Apertura Gastronomía — Día 1','Buffet para jugadores cuerpos técnicos e invitados','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <span class="crono-badge crono-badge-lugar">🍽 Gastro + Salón Históricos</span>
         </div>
       </div>
       <div class="crono-item highlight">
         <div class="crono-time">17:30</div>
         <div>
-          <div class="crono-title">🥪 Sándwiches de Milanesa</div>
+          <div class="crono-title">🥪 Sándwiches de Milanesa</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261121T140000','20261121T160000','NAVE56 · 🥪 Sándwiches de Milanesa','Servicio de sándwiches de milanesa durante el torneo','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <span class="crono-badge crono-badge-lugar">🍺 Cierre Día 1</span>
         </div>
       </div>
@@ -2565,7 +2657,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">11:00</div>
         <div>
-          <div class="crono-title">🏉 Inicio de Partidos — Día 2</div>
+          <div class="crono-title">🏉 Inicio de Partidos — Día 2</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261122T090000','20261122T180000','NAVE56 · 🏉 Inicio de Partidos — Día 2','Rondas clasificatorias y cruces del día 2','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Inicio de los partidos en las 7 canchas en forma simultánea. Equipos competitivos según su clasificación del sábado. Equipos recreativos con al menos un partido programado por la organización.</div>
           <span class="crono-badge crono-badge-lugar">🏟 7 Canchas</span>
         </div>
@@ -2573,14 +2665,14 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">13:00</div>
         <div>
-          <div class="crono-title">🍽 Apertura Gastronomía — Día 2</div>
+          <div class="crono-title">🍽 Apertura Gastronomía — Día 2</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261122T120000','20261122T150000','NAVE56 · 🍽 Apertura Gastronomía — Día 2','Buffet para jugadores cuerpos técnicos e invitados','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <span class="crono-badge crono-badge-lugar">🍽 Gastro + Salón Históricos</span>
         </div>
       </div>
       <div class="crono-item highlight">
         <div class="crono-time">19:00</div>
         <div>
-          <div class="crono-title">🏆 Fin de Partidos y Premiación</div>
+          <div class="crono-title">🏆 Fin de Partidos y Premiación</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261122T170000','20261122T190000','NAVE56 · 🏆 Fin de Partidos y Premiación','Ceremonia de premiación. Entrega de trofeos y cierre oficial','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Fin de todos los partidos. Entrega de premios deportivos.</div>
           <span class="crono-badge crono-badge-lugar">🥇 Premiación</span>
         </div>
@@ -2588,7 +2680,7 @@ window.addEventListener('DOMContentLoaded',function(){
       <div class="crono-item highlight">
         <div class="crono-time">21:00</div>
         <div>
-          <div class="crono-title">🍷 Cena de Cierre NAVE56</div>
+          <div class="crono-title">🍷 Cena de Cierre NAVE56</div><br><button class="crono-cal-btn" onclick="addEventToCalendar('20261122T210000','20261122T235900','NAVE56 · 🍷 Cena de Cierre NAVE56','Cena oficial de cierre. Brindis final NAVE56','Club Hindu Don Torcuato Buenos Aires')">📅 Agregar al calendario</button>
           <div class="crono-desc">Entrega de premios deportivos, palabras de cierre del Presidente de AUVAR y entrega de la Campana a Vikingos — próximos organizadores del NAVE 57.</div>
           <span class="crono-badge crono-badge-lugar">🍷 Cena oficial · Club Hindú</span>
           <span class="crono-badge crono-badge-reunion">🔔 Entrega la Campana</span>
