@@ -2119,12 +2119,10 @@ function initWatermark(){
   var wm=document.getElementById('countdownWm');
   if(!wm)return;
   // busca la imagen MOG entre todos los img del doc
-  var imgs=document.querySelectorAll('img');
-  for(var i=0;i<imgs.length;i++){
-    if(imgs[i].src&&imgs[i].src.indexOf('data:image')===0&&imgs[i].src.length>10000){
-      wm.style.backgroundImage='url("'+imgs[i].src+'")';
-      break;
-    }
+  // Usar solo la imagen del logo MOG, no el mapa
+  var mogImg=document.getElementById('mog-main-logo');
+  if(mogImg&&mogImg.src&&mogImg.src.indexOf('data:image')===0){
+    wm.style.backgroundImage='url("'+mogImg.src+'")';
   }
 }
 window.addEventListener('DOMContentLoaded',function(){
