@@ -896,7 +896,7 @@ function renderHistorial(){
 var CANCHA_PINS=[{num:1,x:49,y:47},{num:2,x:72,y:29},{num:3,x:73,y:41},{num:4,x:73,y:52},{num:5,x:40,y:37},{num:6,x:30,y:27},{num:7,x:26,y:40}];
 var SERVICE_PINS=[{x:53,y:60,label:'🚪 Entrada',color:'#f97316',cat:'organizacion'},{x:51,y:56,label:'👕 Vestuarios',color:'#3b82f6',cat:'sanitarios'},{x:76,y:22,label:'🍺 Bar/3T',color:'#f97316',cat:'gastronomia'},{x:82,y:20,label:'🍖 Quincho',color:'#22c55e',cat:'gastronomia'},{x:18,y:22,label:'🅿 Rugby',color:'#8b949e',cat:'hindu'},{x:20,y:53,label:'🅿 Hockey',color:'#8b949e',cat:'hindu'}];
 var activeCat='todos';
-function setMapaCat(cat){activeCat=cat;var btns=document.querySelectorAll('.mapa-cat-btn');for(var i=0;i<btns.length;i++){btns[i].classList.toggle('active',btns[i].getAttribute('data-cat')===cat);}renderMapa();}
+function setMapaCat(cat){activeCat=cat;renderMapa();}
 
 function renderMapa(){
   var svg=document.getElementById('mapaPins');if(!svg)return;
@@ -2159,13 +2159,16 @@ window.addEventListener('DOMContentLoaded',function(){
     </a>
     <span style="font-size:12px;color:var(--muted);">Av. del Libertador 14.700, Don Torcuato</span>
   </div>
-  <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
-    <button class="mapa-cat-btn active" data-cat="todos" onclick="setMapaCat('todos')" style="padding:5px 14px;border-radius:20px;border:1px solid #3b82f6;background:#3b82f6;color:#fff;font-size:12px;font-weight:600;cursor:pointer;">Todos</button>
-    <button class="mapa-cat-btn" data-cat="canchas" onclick="setMapaCat('canchas')" style="padding:5px 14px;border-radius:20px;border:1px solid #c8a84b;background:transparent;color:#c8a84b;font-size:12px;font-weight:600;cursor:pointer;">🏉 Canchas</button>
-    <button class="mapa-cat-btn" data-cat="gastronomia" onclick="setMapaCat('gastronomia')" style="padding:5px 14px;border-radius:20px;border:1px solid #22c55e;background:transparent;color:#22c55e;font-size:12px;font-weight:600;cursor:pointer;">🍖 Gastronomía</button>
-    <button class="mapa-cat-btn" data-cat="sanitarios" onclick="setMapaCat('sanitarios')" style="padding:5px 14px;border-radius:20px;border:1px solid #3b82f6;background:transparent;color:#3b82f6;font-size:12px;font-weight:600;cursor:pointer;">🚿 Sanitarios</button>
-    <button class="mapa-cat-btn" data-cat="organizacion" onclick="setMapaCat('organizacion')" style="padding:5px 14px;border-radius:20px;border:1px solid #f97316;background:transparent;color:#f97316;font-size:12px;font-weight:600;cursor:pointer;">📋 Organización</button>
-    <button class="mapa-cat-btn" data-cat="hindu" onclick="setMapaCat('hindu')" style="padding:5px 14px;border-radius:20px;border:1px solid #8b949e;background:transparent;color:#8b949e;font-size:12px;font-weight:600;cursor:pointer;">🏟 Hindú</button>
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <label style="font-size:12px;font-weight:600;color:#8b949e;white-space:nowrap;">📍 Mostrar:</label>
+    <select onchange="setMapaCat(this.value)" style="flex:1;padding:7px 12px;border-radius:8px;border:1px solid #30363d;background:#161b22;color:#eceef2;font-size:13px;font-weight:600;cursor:pointer;outline:none;">
+      <option value="todos">🗺 Todos</option>
+      <option value="canchas">🏉 Canchas</option>
+      <option value="gastronomia">🍖 Gastronomía</option>
+      <option value="sanitarios">🚿 Sanitarios</option>
+      <option value="organizacion">📋 Organización</option>
+      <option value="hindu">🏟 Hindú</option>
+    </select>
   </div>
   <div class="mapa-legend">
     <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div>En vivo</div>
