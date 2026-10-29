@@ -1544,13 +1544,12 @@ function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;state={parti
       'DESCRIPTION:Recordatorio: '+titulo,
       'END:VALARM','END:VEVENT','END:VCALENDAR'
     ];
-    var blob=new Blob([lines.join('\r\n')],{type:'text/calendar;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
+    var encoded=encodeURIComponent(lines.join('\r\n'));
     var a=document.createElement('a');
-    a.href=url;a.download='NAVE56-evento.ics';
+    a.href='data:text/calendar;charset=utf-8,'+encoded;
+    a.download='NAVE56-evento.ics';
     document.body.appendChild(a);a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
     showToast('📅 Evento agregado al calendario');
   }
 
@@ -1595,13 +1594,13 @@ function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;state={parti
     }
     lines.push('END:VCALENDAR');
     var ics=lines.join('\r\n');
-    var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
+    // data URI funciona en iOS Safari donde Blob falla
+    var encoded=encodeURIComponent(ics);
     var a=document.createElement('a');
-    a.href=url;a.download='NAVE56-2026.ics';
+    a.href='data:text/calendar;charset=utf-8,'+encoded;
+    a.download='NAVE56-2026.ics';
     document.body.appendChild(a);a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
     showToast('📅 Calendario descargado · Abrilo para importarlo');
   }
 
