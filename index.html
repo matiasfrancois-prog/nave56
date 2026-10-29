@@ -2181,6 +2181,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-gastro-nav" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
     <button class="nav-tab" id="tab-sponsors-nav" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
     <a class="nav-tab nav-ext" id="tab-tienda-side" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras</span></a>
+    <button class="nav-tab" id="tab-fotos-nav" onclick="showTab('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
     <a class="nav-tab nav-ext" id="tab-ig-side" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram</span></a>
   </div>
   <div class="sidebar-actions">
@@ -2289,6 +2290,57 @@ window.addEventListener('DOMContentLoaded',function(){
     <div class="mapa-tooltip" id="mapaTooltip"></div>
   </div>
   <div id="mapaStands"></div>
+</div>
+
+<div class="tab-panel" id="tab-fotos">
+  <div class="section-title">🖼 Fotos</div>
+
+  <!-- NAVE 55 -->
+  <div style="margin-bottom:24px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="background:var(--accent-lo);border:1px solid var(--accent);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--accent-hi);">NAVE 55 · 2025</div>
+      <div style="height:1px;flex:1;background:var(--border);"></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a1f2e,#0f1420);padding:24px 20px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">🏉</div>
+        <div style="font-size:16px;font-weight:700;color:var(--fg);margin-bottom:6px;">Album NAVE 55</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:20px;">Revivé los mejores momentos del torneo anterior</div>
+        <a href="https://photos.app.goo.gl/XSad2qqnh8iPHscm7" target="_blank" rel="noopener"
+           style="display:inline-flex;align-items:center;gap:8px;background:linear-gradient(135deg,#c8a84b,#e8c870);color:#0a0e14;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:800;text-decoration:none;box-shadow:0 4px 16px rgba(200,168,75,.35);">
+          <span style="font-size:18px;">📷</span>
+          Ver fotos NAVE 55
+        </a>
+        <div style="font-size:11px;color:var(--muted);margin-top:10px;">Se abre en Google Photos</div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">📍</span>
+        <span style="font-size:13px;color:var(--muted);">Club Hindú · Don Torcuato · 2025</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAVE 56 -->
+  <div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="background:rgba(200,168,75,.15);border:1px solid rgba(200,168,75,.4);border-radius:8px;padding:4px 12px;font-size:12px;font-weight:700;color:#c8a84b;">NAVE 56 · 2026</div>
+      <div style="height:1px;flex:1;background:var(--border);"></div>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#1a1f2e,#0f1420);padding:32px 20px;text-align:center;">
+        <div style="font-size:48px;margin-bottom:12px;">⏳</div>
+        <div style="font-size:16px;font-weight:700;color:var(--fg);margin-bottom:8px;">Próximamente</div>
+        <div style="font-size:13px;color:var(--muted);max-width:260px;margin:0 auto 16px;">Las fotos del NAVE 56 se irán publicando durante y después del evento</div>
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:20px;padding:8px 16px;font-size:12px;color:var(--muted);">
+          <span>📅</span> 21 y 22 de Noviembre 2026
+        </div>
+      </div>
+      <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">📸</span>
+        <span style="font-size:13px;color:var(--muted);">Seguinos en Instagram <a href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener" style="color:var(--accent-hi);text-decoration:none;font-weight:600;">@nave56.ba</a> para ver las fotos en vivo</span>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="tab-panel" id="tab-sponsors">
@@ -2706,6 +2758,7 @@ window.addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
     <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
     <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras</span></a>
+    <button class="nav-tab" id="tab-fotos-mob" onclick="showTab('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
     <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram</span></a>
   </div>
 </nav>
