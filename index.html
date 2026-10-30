@@ -1351,12 +1351,14 @@ function guardarResultado(i){
   if(!state.partidos[i])return;
   saveState();
   saveSupabase(state.partidos[i]);
+  renderPartidos();renderHistorial();renderCanchas();
   showToast('✅ Resultado guardado');
 }
 function guardarYNotificar(i){
   if(!state.partidos[i])return;
   saveState();
   saveSupabase(state.partidos[i]);
+  renderPartidos();renderHistorial();renderCanchas();
   var p=state.partidos[i];
   var sl=p.score_local||0;
   var sv=p.score_visit||0;
@@ -2162,7 +2164,7 @@ function fetchSupabase(){
               });
             });
             state.partidos=fromServer;
-            saveState();renderPartidos();renderCanchas();renderMapa();
+            saveState();renderPartidos();renderCanchas();renderMapa();renderHistorial();
           }
         }catch(e){}
       }
