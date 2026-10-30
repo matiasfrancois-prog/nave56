@@ -691,6 +691,39 @@ function adminLogout(){
   adminUser=null;isAdmin=false;
   try{sessionStorage.removeItem('nave56_admin_user');}catch(e){}
   var t=document.getElementById('tab-admin-nav');if(t)t.parentNode.removeChild(t);
+}
+
+function enviarNotificacion(){
+  var titulo=document.getElementById('notif-titulo').value.trim();
+  var mensaje=document.getElementById('notif-mensaje').value.trim();
+  var url=document.getElementById('notif-url').value.trim();
+  var statusEl=document.getElementById('notif-status');
+  if(!titulo){showToast('Ingresá un título');return;}
+  if(!mensaje){showToast('Ingresá un mensaje');return;}
+  statusEl.textContent='Enviando...';
+  statusEl.style.color='var(--muted)';
+  var appId='57793616-4667-47c4-946d-5224d6f156b7';
+  var apiKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
+  var body={app_id:appId,headings:{en:titulo,es:titulo},contents:{en:mensaje,es:mensaje},included_segments:['All']};
+  if(url){body.url=url;}
+  fetch('https://api.onesignal.com/notifications',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
+    body:JSON.stringify(body)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.id){
+      statusEl.textContent='✅ Notificación enviada correctamente';
+      statusEl.style.color='#4caf50';
+      document.getElementById('notif-titulo').value='';
+      document.getElementById('notif-mensaje').value='';
+    } else {
+      statusEl.textContent='❌ Error: '+(data.errors?data.errors[0]:'respuesta inesperada');
+      statusEl.style.color='#e55';
+    }
+  }).catch(function(err){
+    statusEl.textContent='❌ Error de red: '+err.message;
+    statusEl.style.color='#e55';
+  });
   showTab('fixture');showToast('Sesión cerrada');
 }
 function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
@@ -1390,7 +1423,7 @@ function _titilaTope(el){
 }
 // ─────────────────────────────────────────────────────────────────────────
 
-var adminSecciones=['partidos','scoring','equipos','referees','gastro','sponsors'];
+var adminSecciones=['partidos','scoring','equipos','referees','gastro','sponsors','notif'];
 function adminGo(sec){
   document.getElementById('admin-menu').style.display='none';
   adminSecciones.forEach(function(s){
@@ -2472,8 +2505,14 @@ window.addEventListener('DOMContentLoaded',function(){
         <div style="font-weight:700;font-size:14px;color:var(--fg);">Sponsors</div>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">Patrocinadores</div>
       </button>
+      <button onclick="adminGo('notif')" style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px 12px;cursor:pointer;text-align:center;transition:box-shadow .15s;">
+        <div style="font-size:32px;margin-bottom:6px;">📣</div>
+        <div style="font-weight:700;font-size:14px;color:var(--fg);">Notificaciones</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Avisar a suscriptores</div>
+      </button>
     </div>
     <div style="text-align:center;">
+      <button class="btn-admin" onclick="adminGo('notif')" style="width:100%;margin-bottom:8px;">📣 Notificaciones</button>
       <button class="btn-danger" onclick="resetAll()" style="font-size:12px;padding:6px 16px;">⚠ Borrar todos los datos</button>
     </div>
   </div>
@@ -2578,7 +2617,30 @@ window.addEventListener('DOMContentLoaded',function(){
     </div>
     <button class="btn-save" onclick="addSponsor()" style="width:100%;">+ Agregar Sponsor</button>
     <div class="admin-list" id="admin-sponsors-list" style="margin-top:10px;"></div>
+  
+  <!-- Sección Notificaciones -->
+  <div id="admin-sec-notif" style="display:none;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <button onclick="adminBack()" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:20px;padding:0;line-height:1;">&#8592;</button>
+      <div class="admin-section-title" style="margin:0;border:0;padding:0;">📣 Enviar Notificación</div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Título</div>
+      <input id="notif-titulo" type="text" placeholder="Ej: Resultado Partido 3" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);">
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">Mensaje</div>
+      <textarea id="notif-mensaje" placeholder="Ej: Los Cóndores 21 - Los Pumas 14" rows="3" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);resize:vertical;"></textarea>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">URL al abrir (opcional)</div>
+      <input id="notif-url" type="text" placeholder="https://matiasfrancois-prog.github.io/nave56/" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);">
+    </div>
+    <button class="btn-admin" onclick="enviarNotificacion()" style="width:100%;margin-top:8px;font-size:15px;padding:12px;">📤 Enviar a todos los suscriptores</button>
+    <div id="notif-status" style="margin-top:12px;font-size:13px;text-align:center;color:var(--muted);"></div>
   </div>
+
+</div>
 
 </div>
 
