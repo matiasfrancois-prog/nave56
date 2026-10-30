@@ -618,7 +618,7 @@ function showTab(name){
   if(m)m.classList.add('active');
   if(name==='mapa')setTimeout(renderMapa,100);
   if(name==='canchas')renderCanchas();
-  if(name==='historial'){fetchSupabase();setTimeout(renderHistorial,600);}
+  if(name==='historial'){fetchSupabase();setTimeout(renderHistorial,300);setTimeout(renderHistorial,1200);}
   if(name==='gastro')renderGastroPublic();
   if(name==='sponsors')renderSponsors();
   if(name==='agrupaciones')renderAgrupaciones();
@@ -939,7 +939,7 @@ function renderCanchas(){
 
 function renderHistorial(){
   var list=document.getElementById('historial-list');
-  var fin=state.partidos.filter(function(p){return p.estado==='finalizado';});
+  var fin=state.partidos.filter(function(p){return (p.estado||'').toLowerCase()==='finalizado';});
   if(!fin.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div>';return;}
   var html='';
   fin.forEach(function(p){
@@ -2152,7 +2152,7 @@ function fetchSupabase(){
                 cancha:row.cancha,
                 dia:row.dia,
                 hora:row.hora,
-                estado:row.estado||'proximo',
+                estado:(row.estado||'proximo').toLowerCase(),
                 score_local:row.score_local||0,
                 score_visit:row.score_visit||row.score_visitante||0,
                 cat:row.cat||row.categoria||'A',
