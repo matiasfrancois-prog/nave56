@@ -724,7 +724,6 @@ function enviarNotificacion(){
     statusEl.textContent='❌ Error de red: '+err.message;
     statusEl.style.color='#e55';
   });
-  showTab('fixture');showToast('Sesión cerrada');
 }
 function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
 
@@ -1382,7 +1381,7 @@ function addPoints(i,side,pts){
   if(!state.partidos[i])return;
   if(side==='local')state.partidos[i].score_local=(state.partidos[i].score_local||0)+pts;
   else state.partidos[i].score_visit=(state.partidos[i].score_visit||0)+pts;
-  saveState();renderPartidos();renderMapa();renderAdminPartidos();
+  saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderAdminPartidos();
 }
 function addCard(i,side,tipo){
   if(!state.partidos[i])return;
@@ -1392,7 +1391,7 @@ function addCard(i,side,tipo){
   state.partidos[i].tarjetas.push({equipo:equipo,side:side,tipo:tipo,hora:hora});
   saveState();saveSupabase(state.partidos[i]);renderPartidos();renderAdminPartidos();showToast('Tarjeta '+tipo+' registrada');
 }
-function updateEstado(i,val){state.partidos[i].estado=val;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();}
+function updateEstado(i,val){state.partidos[i].estado=val;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderHistorial();renderAdminPartidos();}
 function updatePartidoReferee(i,campo,val){if(!state.partidos[i])return;state.partidos[i][campo]=val;saveState();saveSupabase(state.partidos[i]);}
 function finalizarPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='finalizado';saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido finalizado → Historial');}
 function revertirPartido(i){if(!state.partidos[i])return;state.partidos[i].estado='proximo';saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();renderCanchas();renderAdminPartidos();showToast('Partido revertido → Fixture');}
@@ -1474,7 +1473,7 @@ function adminBack(){
   });
   document.getElementById('admin-menu').style.display='block';
 }
-function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();renderPartidos();renderAdminPartidos();showToast('Tarjeta eliminada');}
+function delCard(i,ti){if(!state.partidos[i])return;if(!state.partidos[i].tarjetas)return;state.partidos[i].tarjetas.splice(ti,1);saveState();saveSupabase(state.partidos[i]);renderPartidos();renderAdminPartidos();showToast('Tarjeta eliminada');}
 function updateReferee(i,val){state.partidos[i].referee=val.trim();saveState();renderPartidos();}
 
 /* ===== PLANILLAS DE ÁRBITRO (impresión con datos precargados) ===== */
