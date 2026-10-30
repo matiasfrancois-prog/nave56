@@ -618,7 +618,7 @@ function showTab(name){
   if(m)m.classList.add('active');
   if(name==='mapa')setTimeout(renderMapa,100);
   if(name==='canchas')renderCanchas();
-  if(name==='historial')renderHistorial();
+  if(name==='historial'){fetchSupabase();setTimeout(renderHistorial,600);}
   if(name==='gastro')renderGastroPublic();
   if(name==='sponsors')renderSponsors();
   if(name==='agrupaciones')renderAgrupaciones();
