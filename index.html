@@ -1338,9 +1338,44 @@ function renderAdminPartidos(){
       });
       html+='</div>';
     }
+    // Botones Guardar / Guardar y Notificar
+    html+='<div style="display:flex;gap:8px;margin-top:10px;">';
+    html+='<button onclick="guardarResultado(''+i+'')"
+    style="flex:1;background:#1a4fa0;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">💾 Guardar</button>';
+    html+='<button onclick="guardarYNotificar(''+i+'')"
+    style="flex:1;background:#2a6a2a;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;">💾📣 Guardar y Notificar</button>';
+    html+='</div>';
     html+='</div>';
   });
   list.innerHTML=html;
+}
+function guardarResultado(i){
+  if(!state.partidos[i])return;
+  saveState();
+  saveSupabase(state.partidos[i]);
+  showToast('✅ Resultado guardado');
+}
+function guardarYNotificar(i){
+  if(!state.partidos[i])return;
+  saveState();
+  saveSupabase(state.partidos[i]);
+  var p=state.partidos[i];
+  var sl=p.score_local||0;
+  var sv=p.score_visit||0;
+  var titulo='Resultado: '+p.local+' vs '+p.visitante;
+  var mensaje=p.local+' '+sl+' - '+sv+' '+p.visitante;
+  var appId='57793616-4667-47c4-946d-5224d6f156b7';
+  var apiKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
+  var body={app_id:appId,headings:{en:titulo,es:titulo},contents:{en:mensaje,es:mensaje},included_segments:['All']};
+  showToast('💾 Guardado. Enviando notificación...');
+  fetch('https://api.onesignal.com/notifications',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
+    body:JSON.stringify(body)
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.id){showToast('📣 Notificación enviada a todos los suscriptores');}
+    else{showToast('⚠️ Guardado, pero error al notificar');}
+  }).catch(function(){showToast('⚠️ Guardado, pero error de red al notificar');});
 }
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
