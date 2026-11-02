@@ -1,7 +1,7 @@
 // NAVE56 Service Worker — cache + OneSignal push notifications
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 
-var CACHE_VERSION = 'nave56-v202611020005';
+var CACHE_VERSION = 'nave56-v202611020006';
 var CACHE_NAME = CACHE_VERSION;
 
 // NUNCA cachear index.html — siempre de la red para que los datos sean frescos

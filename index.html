@@ -2154,46 +2154,57 @@ function saveSupabase(partido){
 }
 // ─────────────────────────────────────────────────────────────────────────
 
+function procesarPartidosSupabase(data){
+  if(!data||!data.length)return;
+  var fromServer=[];
+  data.forEach(function(row){
+    fromServer.push({
+      id:row.id,
+      local:row.local||row.equipo_local||'',
+      visitante:row.visitante||row.equipo_visitante||'',
+      cancha:row.cancha,
+      dia:row.dia,
+      hora:row.hora,
+      estado:(row.estado||'proximo').toLowerCase(),
+      score_local:row.score_local||0,
+      score_visit:row.score_visit||row.score_visitante||0,
+      cat:row.cat||row.categoria||'A',
+      tipo:row.tipo||'grupo',
+      referee:row.referee||row.arbitro||'',
+      touch1:row.touch1||'',
+      touch2:row.touch2||'',
+      tarjetas:row.tarjetas||(row.tarjetas_json?JSON.parse(row.tarjetas_json):[])
+    });
+  });
+  state.partidos=fromServer;
+  saveState();
+  renderPartidos();renderCanchas();renderMapa();renderHistorial();renderAdminPartidos();
+}
 function fetchSupabase(){
-  try{
+  var url=SUPABASE_URL+'/rest/v1/partidos?select=*&order=hora.asc';
+  var headers={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
+  // Usar fetch() — más confiable en iOS PWA
+  if(typeof fetch!=='undefined'){
+    fetch(url,{method:'GET',headers:headers,cache:'no-store'})
+      .then(function(r){return r.json();})
+      .then(function(data){procesarPartidosSupabase(data);})
+      .catch(function(){
+        // fallback XHR si fetch falla
+        var xhr=new XMLHttpRequest();
+        xhr.open('GET',url,true);
+        xhr.setRequestHeader('apikey',SUPABASE_KEY);
+        xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+        xhr.onload=function(){if(xhr.status===200){try{procesarPartidosSupabase(JSON.parse(xhr.responseText));}catch(e){}}};
+        xhr.send();
+      });
+  } else {
     var xhr=new XMLHttpRequest();
-    xhr.open('GET',SUPABASE_URL+'/rest/v1/partidos?select=*&order=hora.asc',true);
+    xhr.open('GET',url,true);
     xhr.setRequestHeader('apikey',SUPABASE_KEY);
     xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.onload=function(){
-      if(xhr.status===200){
-        try{
-          var data=JSON.parse(xhr.responseText);
-          if(data&&data.length){
-            // Supabase es fuente de verdad: reemplazar TODOS los partidos
-            var fromServer=[];
-            data.forEach(function(row){
-              fromServer.push({
-                id:row.id,
-                local:row.local||row.equipo_local||'',
-                visitante:row.visitante||row.equipo_visitante||'',
-                cancha:row.cancha,
-                dia:row.dia,
-                hora:row.hora,
-                estado:(row.estado||'proximo').toLowerCase(),
-                score_local:row.score_local||0,
-                score_visit:row.score_visit||row.score_visitante||0,
-                cat:row.cat||row.categoria||'A',
-                tipo:row.tipo||'grupo',
-                referee:row.referee||row.arbitro||'',
-                touch1:row.touch1||'',
-                touch2:row.touch2||'',
-                tarjetas:row.tarjetas||(row.tarjetas_json?JSON.parse(row.tarjetas_json):[])
-              });
-            });
-            state.partidos=fromServer;
-            saveState();renderPartidos();renderCanchas();renderMapa();renderHistorial();
-          }
-        }catch(e){}
-      }
-    };
+    xhr.onload=function(){if(xhr.status===200){try{procesarPartidosSupabase(JSON.parse(xhr.responseText));}catch(e){}}};
     xhr.send();
-  }catch(e){}
+  }
 }
 
 // Bootstrap diferido al DOMContentLoaded para que el DOM esté listo en mobile
@@ -2248,24 +2259,15 @@ function initWatermark(){
     wm.style.backgroundImage='url("'+mogImg.src+'")';
   }
 }
-window.// VERSION CHECK — fuerza reload si SW sirvió version vieja
-var APP_VERSION = '20261102-v5';
-try {
-  var storedVer = localStorage.getItem('nave56_app_version');
-  if (storedVer && storedVer !== APP_VERSION) {
-    localStorage.setItem('nave56_app_version', APP_VERSION);
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(regs) {
-        var ps = regs.map(function(r){ return r.unregister(); });
-        Promise.all(ps).then(function(){ window.location.reload(true); });
-      });
-    } else {
-      window.location.reload(true);
-    }
-  } else {
-    localStorage.setItem('nave56_app_version', APP_VERSION);
-  }
-} catch(e) {}
+window.// SW CLEANUP — eliminar todo SW viejo y limpiar cache
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(function(regs) {
+    regs.forEach(function(r){ r.unregister(); });
+  });
+  caches.keys().then(function(keys){
+    keys.forEach(function(k){ caches.delete(k); });
+  });
+}
 
 addEventListener('DOMContentLoaded',function(){
   loadState();
