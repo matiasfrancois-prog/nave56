@@ -710,19 +710,26 @@ function enviarNotificacion(){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
     body:JSON.stringify(body)
-  }).then(function(r){return r.json();}).then(function(data){
+  }).then(function(r){
+    var status=r.status;
+    return r.json().then(function(data){return {status:status,data:data};});
+  }).then(function(res){
+    var data=res.data;
     if(data.id){
-      statusEl.textContent='✅ Notificación enviada correctamente';
+      statusEl.textContent='✅ Notificación enviada (ID: '+data.id.substring(0,8)+'...)';
       statusEl.style.color='#4caf50';
       document.getElementById('notif-titulo').value='';
       document.getElementById('notif-mensaje').value='';
     } else {
-      statusEl.textContent='❌ Error: '+(data.errors?data.errors[0]:'respuesta inesperada');
+      var errMsg=data.errors?JSON.stringify(data.errors):'HTTP '+res.status+' - '+JSON.stringify(data);
+      statusEl.textContent='❌ Error: '+errMsg;
       statusEl.style.color='#e55';
+      console.error('[OneSignal] Error response:', res.status, data);
     }
   }).catch(function(err){
     statusEl.textContent='❌ Error de red: '+err.message;
     statusEl.style.color='#e55';
+    console.error('[OneSignal] Fetch error:', err);
   });
 }
 function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
@@ -1371,10 +1378,22 @@ function guardarYNotificar(i){
     method:'POST',
     headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
     body:JSON.stringify(body)
-  }).then(function(r){return r.json();}).then(function(data){
-    if(data.id){showToast('📣 Notificación enviada a todos los suscriptores');}
-    else{showToast('⚠️ Guardado, pero error al notificar');}
-  }).catch(function(){showToast('⚠️ Guardado, pero error de red al notificar');});
+  }).then(function(r){
+    var status=r.status;
+    return r.json().then(function(data){return {status:status,data:data};});
+  }).then(function(res){
+    var data=res.data;
+    if(data.id){
+      showToast('📣 Notificación enviada a todos');
+    } else {
+      var errMsg=data.errors?JSON.stringify(data.errors):'HTTP '+res.status;
+      showToast('⚠️ Guardado. Error notif: '+errMsg);
+      console.error('[OneSignal] guardarYNotificar error:', res.status, data);
+    }
+  }).catch(function(err){
+    showToast('⚠️ Guardado. Error red: '+err.message);
+    console.error('[OneSignal] guardarYNotificar fetch error:', err);
+  });
 }
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
