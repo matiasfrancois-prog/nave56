@@ -537,8 +537,11 @@ function guardarPartido(idx, id) {
     var el = document.getElementById(campo + '_' + idx);
     return el ? (parseInt(el.value)||0) : 0;
   }
-  var nuevoEstado = document.getElementById('estado_' + idx).value;
+  var nuevoEstado = 'finalizado'; // Guardar y Notificar SIEMPRE finaliza
   var ptsL = v('pts_l'), ptsV = v('pts_v');
+  // También actualizar el dropdown visualmente
+  var estadoEl = document.getElementById('estado_' + idx);
+  if(estadoEl) estadoEl.value = 'finalizado';
 
   var data = {
     pts_l: ptsL,
@@ -633,7 +636,7 @@ function enviarNotifResultado(titulo, mensaje, cb) {
   var xhr = new XMLHttpRequest();
   xhr.open('POST', ONESIGNAL_API, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
-  xhr.setRequestHeader('Authorization', 'Basic ' + ONESIGNAL_REST_KEY);
+  xhr.setRequestHeader('Authorization', 'Key ' + ONESIGNAL_REST_KEY);
   xhr.onload = function() { cb(xhr.status===200); };
   xhr.onerror = function() { cb(false); };
   xhr.send(payload);
