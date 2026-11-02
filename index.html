@@ -2169,7 +2169,8 @@ function saveSupabase(partido){
       xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=eq.'+partido.id,true);
       xhr.setRequestHeader('Prefer','return=minimal');
     } else {
-      // Sin id: no hacemos nada, los partidos vienen todos de Supabase
+      // Sin id: partido no cargado desde Supabase aún
+      showToast('⚠️ Partido sin ID de BD — esperá que cargue el fixture');
       return;
     }
     xhr.setRequestHeader('apikey',SUPABASE_KEY);
@@ -2177,7 +2178,7 @@ function saveSupabase(partido){
     xhr.setRequestHeader('Content-Type','application/json');
     xhr.onload=function(){
       if(xhr.status===200||xhr.status===204){
-        // OK silencioso
+        showToast('✅ Guardado en BD ('+partido.estado+')');
       } else {
         showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,120));
       }
@@ -2235,6 +2236,10 @@ function fetchSupabase(){
     if(xhr.status===200){
       try{
         var data=JSON.parse(xhr.responseText);
+        // Debug: mostrar estados recibidos
+        var finalizados=data.filter(function(r){return r.estado==='finalizado';}).length;
+        var lives=data.filter(function(r){return r.estado==='live';}).length;
+        if(finalizados||lives)showToast('📡 BD: '+finalizados+' final / '+lives+' live');
         procesarPartidosSupabase(data);
       }catch(e){}
     }
