@@ -2193,27 +2193,20 @@ function fetchSupabase(){
   mostrarDebug('fetchSupabase iniciado...');
   if(typeof fetch!=='undefined'){
     mostrarDebug('usando fetch() nativo');
-    fetch(url,{method:'GET',headers:headers,cache:'no-store'})
+    var urlTs=url+'&_t='+Date.now();
+    fetch(urlTs,{method:'GET',headers:headers})
       .then(function(r){
-        mostrarDebug('fetch() respuesta status:'+r.status);
+        mostrarDebug('fetch() status:'+r.status);
+        if(!r.ok){mostrarDebug('ERROR HTTP '+r.status);return null;}
         return r.json();
       })
       .then(function(data){
-        mostrarDebug('fetch() json ok, items:'+(data?data.length:'null'));
+        if(!data){mostrarDebug('data null/undefined');return;}
+        mostrarDebug('OK items:'+data.length);
         procesarPartidosSupabase(data);
       })
       .catch(function(e){
-        mostrarDebug('fetch() FALLO:'+e+' - probando XHR');
-        var xhr=new XMLHttpRequest();
-        xhr.open('GET',url,true);
-        xhr.setRequestHeader('apikey',SUPABASE_KEY);
-        xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-        xhr.onload=function(){
-          mostrarDebug('XHR status:'+xhr.status);
-          if(xhr.status===200){try{procesarPartidosSupabase(JSON.parse(xhr.responseText));}catch(e2){mostrarDebug('XHR parse err:'+e2);}}
-        };
-        xhr.onerror=function(){mostrarDebug('XHR error de red');};
-        xhr.send();
+        mostrarDebug('fetch() FALLO:'+e);
       });
   } else {
     mostrarDebug('fetch no disponible, usando XHR');
