@@ -2139,49 +2139,33 @@ function saveSupabase(partido){
   if(!partido)return;
   try{
     var isUpdate=!!partido.id;
+    // Solo mandamos los campos seguros. tarjetas/dia pueden fallar en Supabase.
     var bodyObj={
-      local:partido.local,
-      visitante:partido.visitante,
-      cancha:partido.cancha,
-      dia:partido.dia,
-      horario:partido.hora,
       estado:partido.estado,
       pts_l:partido.score_local||0,
       pts_v:partido.score_visit||0,
-      modalidad:partido.cat||'A',
-      tipo:partido.tipo||'grupo',
-      referee:partido.referee||'',
-      ayudantes:partido.touch1||'',
-      tarjetas:partido.tarjetas||[]
+      referee:partido.referee||''
     };
-    // NO incluir id en el body para evitar error de PK en Supabase
     var body=JSON.stringify(bodyObj);
     var xhr=new XMLHttpRequest();
     if(isUpdate){
-      // UPDATE existente
       xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=eq.'+partido.id,true);
       xhr.setRequestHeader('Prefer','return=minimal');
     } else {
-      // INSERT nuevo — Supabase asignará id
-      xhr.open('POST',SUPABASE_URL+'/rest/v1/partidos',true);
-      xhr.setRequestHeader('Prefer','return=representation');
+      // Sin id: no hacemos nada, los partidos vienen todos de Supabase
+      return;
     }
     xhr.setRequestHeader('apikey',SUPABASE_KEY);
     xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.setRequestHeader('Content-Type','application/json');
     xhr.onload=function(){
-      if(xhr.status===200||xhr.status===201||xhr.status===204){
-        if(!isUpdate){
-          try{
-            var res=JSON.parse(xhr.responseText);
-            if(res&&res[0]&&res[0].id)partido.id=res[0].id;
-          }catch(e){}
-        }
+      if(xhr.status===200||xhr.status===204){
+        // OK silencioso
       } else {
-        showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,80));
+        showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,120));
       }
     };
-    xhr.onerror=function(){showToast('⚠️ Error de red al guardar en Supabase');};
+    xhr.onerror=function(){showToast('⚠️ Error de red al guardar');};
     xhr.send(body);
   }catch(e){showToast('⚠️ Error interno saveSupabase: '+e.message);}
 }
@@ -2226,31 +2210,20 @@ function procesarPartidosSupabase(data){
 }
 function fetchSupabase(){
   var url=SUPABASE_URL+'/rest/v1/partidos?select=*&order=horario.asc';
-  var headers={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY};
-  if(typeof fetch!=='undefined'){
-    fetch(url,{method:'GET',headers:headers})
-      .then(function(r){
-        return r.text().then(function(txt){
-          if(!r.ok){return null;}
-          try{return JSON.parse(txt);}catch(e){return null;}
-        });
-      })
-      .then(function(data){
-        if(!data){return;}
+  var xhr=new XMLHttpRequest();
+  xhr.open('GET',url,true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);
+  xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.onload=function(){
+    if(xhr.status===200){
+      try{
+        var data=JSON.parse(xhr.responseText);
         procesarPartidosSupabase(data);
-      })
-      .catch(function(e){});
-  } else {
-    var xhr=new XMLHttpRequest();
-    xhr.open('GET',url,true);
-    xhr.setRequestHeader('apikey',SUPABASE_KEY);
-    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
-    xhr.onload=function(){
-      if(xhr.status===200){try{procesarPartidosSupabase(JSON.parse(xhr.responseText));}catch(e){}}
-    };
-    xhr.onerror=function(){};
-    xhr.send();
-  }
+      }catch(e){}
+    }
+  };
+  xhr.onerror=function(){};
+  xhr.send();
 }
 
 // Bootstrap diferido al DOMContentLoaded para que el DOM esté listo en mobile
