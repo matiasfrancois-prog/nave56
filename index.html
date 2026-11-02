@@ -1376,10 +1376,13 @@ function guardarResultado(i){
 }
 function guardarYNotificar(i){
   if(!state.partidos[i])return;
+  // 1. Marcar finalizado y guardar PRIMERO (siempre, sin depender de notif)
   state.partidos[i].estado='finalizado';
   saveState();
   saveSupabase(state.partidos[i]);
   renderPartidos();renderHistorial();renderCanchas();renderAdminPartidos();
+  showToast('✅ Guardado. Enviando notificación...');
+  // 2. Notificación por separado (puede fallar sin afectar el guardado)
   var p=state.partidos[i];
   var sl=p.score_local||0;
   var sv=p.score_visit||0;
@@ -1388,27 +1391,19 @@ function guardarYNotificar(i){
   var appId='57793616-4667-47c4-946d-5224d6f156b7';
   var apiKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
   var body={app_id:appId,headings:{en:titulo,es:titulo},contents:{en:mensaje,es:mensaje},included_segments:['All']};
-  showToast('💾 Guardado. Enviando notificación...');
-  fetch('https://api.onesignal.com/notifications',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
-    body:JSON.stringify(body)
-  }).then(function(r){
-    var status=r.status;
-    return r.json().then(function(data){return {status:status,data:data};});
-  }).then(function(res){
-    var data=res.data;
-    if(data.id){
-      showToast('📣 Notificación enviada a todos');
-    } else {
-      var errMsg=data.errors?JSON.stringify(data.errors):'HTTP '+res.status;
-      showToast('⚠️ Guardado. Error notif: '+errMsg);
-      console.error('[OneSignal] guardarYNotificar error:', res.status, data);
-    }
-  }).catch(function(err){
-    showToast('⚠️ Guardado. Error red: '+err.message);
-    console.error('[OneSignal] guardarYNotificar fetch error:', err);
-  });
+  var xhrN=new XMLHttpRequest();
+  xhrN.open('POST','https://api.onesignal.com/notifications',true);
+  xhrN.setRequestHeader('Content-Type','application/json');
+  xhrN.setRequestHeader('Authorization','Key '+apiKey);
+  xhrN.onload=function(){
+    try{
+      var d=JSON.parse(xhrN.responseText);
+      if(d.id){showToast('📣 Notificación enviada a todos');}
+      else{showToast('⚠️ Guardado OK. Error notif: '+(d.errors?JSON.stringify(d.errors):''+xhrN.status));}
+    }catch(e){showToast('⚠️ Guardado OK. Notif: respuesta inválida');}
+  };
+  xhrN.onerror=function(){showToast('⚠️ Guardado OK. Error de red en notificación');};
+  xhrN.send(JSON.stringify(body));
 }
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
