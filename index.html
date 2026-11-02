@@ -1364,9 +1364,10 @@ function guardarResultado(i){
 }
 function guardarYNotificar(i){
   if(!state.partidos[i])return;
+  state.partidos[i].estado='finalizado';
   saveState();
   saveSupabase(state.partidos[i]);
-  renderPartidos();renderHistorial();renderCanchas();
+  renderPartidos();renderHistorial();renderCanchas();renderAdminPartidos();
   var p=state.partidos[i];
   var sl=p.score_local||0;
   var sv=p.score_visit||0;
