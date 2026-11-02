@@ -1,53 +1,38 @@
-// NAVE56 Service Worker — cache + OneSignal push notifications
+// NAVE56 Service Worker — SOLO push notifications, SIN cache
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 
-var CACHE_VERSION = 'nave56-v202611020007';
-var CACHE_NAME = CACHE_VERSION;
+var CACHE_VERSION = 'nave56-v202611020008';
 
-// NUNCA cachear index.html — siempre de la red para que los datos sean frescos
-var NEVER_CACHE = [
-  '/nave56/',
-  '/nave56/index.html'
-];
-
+// Al instalar: skipWaiting inmediato, sin precachear nada
 self.addEventListener('install', function(event) {
-  self.skipWaiting();
-  // No precacheamos nada — el SW solo existe para push notifications
+  event.waitUntil(self.skipWaiting());
 });
 
+// Al activar: borrar TODOS los caches y tomar control inmediato
 self.addEventListener('activate', function(event) {
   event.waitUntil(
-    caches.keys().then(function(cacheNames) {
-      return Promise.all(
-        cacheNames.map(function(cacheName) {
-          // Borrar todos los caches viejos (incluye versiones anteriores con index.html cacheado)
-          return caches.delete(cacheName);
-        })
-      );
+    caches.keys().then(function(keys) {
+      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
     }).then(function() {
       return self.clients.claim();
     })
   );
 });
 
+// Fetch: NUNCA cachear nada — siempre red
 self.addEventListener('fetch', function(event) {
+  // Solo interceptar requests de nuestra propia app (no OneSignal)
   var url = event.request.url;
-  
-  // Para index.html: SIEMPRE red, sin cache
-  var isIndexHtml = false;
-  for (var j = 0; j < NEVER_CACHE.length; j++) {
-    if (url.indexOf(NEVER_CACHE[j]) !== -1) {
-      isIndexHtml = true;
-      break;
-    }
+  if (url.indexOf('onesignal') !== -1 || url.indexOf('supabase') !== -1) {
+    return; // dejar pasar sin interferir
   }
-  
-  if (isIndexHtml) {
-    // Network only para index.html — si falla la red, el usuario ve error (mejor que datos viejos)
-    event.respondWith(fetch(event.request));
-    return;
+  // Para todo lo nuestro: network only, sin cache
+  if (url.indexOf('matiasfrancois-prog.github.io') !== -1) {
+    event.respondWith(
+      fetch(event.request).catch(function() {
+        // Si la red falla, no tenemos cache (es intencional para datos frescos)
+        return new Response('Offline', {status: 503});
+      })
+    );
   }
-  
-  // Para todo lo demás: pasar sin interferir
-  // (OneSignal maneja sus propios requests)
 });
