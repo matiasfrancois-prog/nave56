@@ -79,7 +79,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-actions{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
 /* CONTENIDO */
 .app-body{flex:1;min-width:0;display:flex;flex-direction:column;}
-.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 24px;display:flex;align-items:center;justify-content:space-between;}
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 24px;padding-top:calc(11px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
 .top-bar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);letter-spacing:.08em;opacity:.7;}
 .header-actions{display:flex;gap:8px;align-items:center;}
 .main-content{flex:1;padding:24px 20px;max-width:980px;width:100%;}
@@ -2248,7 +2248,26 @@ function initWatermark(){
     wm.style.backgroundImage='url("'+mogImg.src+'")';
   }
 }
-window.addEventListener('DOMContentLoaded',function(){
+window.// VERSION CHECK — fuerza reload si SW sirvió version vieja
+var APP_VERSION = '20261102-v5';
+try {
+  var storedVer = localStorage.getItem('nave56_app_version');
+  if (storedVer && storedVer !== APP_VERSION) {
+    localStorage.setItem('nave56_app_version', APP_VERSION);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        var ps = regs.map(function(r){ return r.unregister(); });
+        Promise.all(ps).then(function(){ window.location.reload(true); });
+      });
+    } else {
+      window.location.reload(true);
+    }
+  } else {
+    localStorage.setItem('nave56_app_version', APP_VERSION);
+  }
+} catch(e) {}
+
+addEventListener('DOMContentLoaded',function(){
   loadState();
   fillRefereeList();
   renderPartidos();
