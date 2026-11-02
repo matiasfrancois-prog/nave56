@@ -598,10 +598,10 @@ var PARTIDOS_DEFAULT=[
 var REFEREES_DEFAULT=['Alejandro Gómez','Bruno Salinas','Carlos Méndez','Diego Torres','Eduardo Ruiz','Federico López','Gastón Herrera','Hernán Castro','Ignacio Peralta','Juan Martínez','Lucas Fernández','Marcos Díaz','Nicolás Ramírez','Pablo García','Rodrigo Vega'];
 var state={partidos:[],equipos:[],gastro:[],sponsors:[],referees:[]};
 
-function loadState(){try{// Partidos: siempre arrancar con default, Supabase los sobreescribe en 800ms
+function loadState(){try{// Partidos: SIEMPRE de Supabase, nunca de localStorage
   state.partidos=PARTIDOS_DEFAULT.slice();
   var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();state.equipos=state.equipos.filter(function(e){return e.cat!=='C';});if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
-function saveState(){try{localStorage.setItem('nave56_p',JSON.stringify(state.partidos));localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));localStorage.setItem('nave56_rf',JSON.stringify(state.referees));}catch(e){}}
+function saveState(){try{localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));localStorage.setItem('nave56_rf',JSON.stringify(state.referees));}catch(e){}}
 
 function showTab(name){
   if(name==='admin'&&!adminUser){checkAuth();return;}
@@ -2293,8 +2293,8 @@ addEventListener('DOMContentLoaded',function(){
   setTimeout(initCountdown,100);
   setTimeout(initWatermark,300);
   setTimeout(initPersonas,500);
-  setTimeout(fetchSupabase,300);
-  setInterval(fetchSupabase,10000);
+  fetchSupabase();
+  setInterval(fetchSupabase,15000);
 });
 </script>
 
