@@ -115,12 +115,12 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .historial-meta{font-size:14px;}
   .cancha-num{font-size:34px;}
   .stats-row{grid-template-columns:repeat(2,1fr);gap:10px;}
-  .agrup-grid{grid-template-columns:repeat(2,1fr);width:100%;}
+  .agrup-grid{grid-template-columns:repeat(3,1fr);width:100%;}
   .agrup-card{width:100%;box-sizing:border-box;overflow:hidden;}
   .agrup-contacto{overflow:hidden;}
-  .agrup-nombre{font-size:14px;}
-  .agrup-wa{font-size:12px;padding:7px 8px;}
-  .agrup-ig{font-size:12px;padding:7px 8px;}
+  .agrup-nombre{font-size:13px;}
+  .agrup-wa{font-size:12px;padding:6px 8px;}
+  .agrup-ig{font-size:12px;padding:6px 8px;}
   .canchas-grid{grid-template-columns:1fr;}
   .admin-list-item-name{font-size:15px;}
   .admin-list-item-sub{font-size:13px;}
@@ -754,6 +754,7 @@ function renderPartidos(){
     if(currentFilter==='live')return p.estado==='live';
     if(currentFilter==='catA')return p.cat==='A';
     if(currentFilter==='catB')return p.cat==='B';
+    if(currentFilter==='sinFin')return p.estado!=='finalizado';
     if(currentFilter.startsWith('c'))return String(p.cancha)===currentFilter.slice(1);
     return true;
   });
@@ -2395,6 +2396,7 @@ addEventListener('DOMContentLoaded',function(){
     <button class="filter-btn" onclick="setFilter('c5',this)">C5</button>
     <button class="filter-btn" onclick="setFilter('c6',this)">C6</button>
     <button class="filter-btn" onclick="setFilter('c7',this)">C7</button>
+    <button class="filter-btn" onclick="setFilter('sinFin',this)">✅ Sin finalizar</button>
   </div>
   <div class="partidos-list" id="partidos-list">
     <div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos cargados aún</p></div>

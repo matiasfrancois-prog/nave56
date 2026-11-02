@@ -529,8 +529,14 @@ function renderAdminLista() {
 function guardarPartido(idx, id) {
   var btn = document.getElementById('btn_' + idx);
   var msgEl = document.getElementById('msg_' + idx);
+  // Seguridad: si ya está disabled de antes, re-habilitar primero
+  btn.disabled = false;
   btn.disabled = true;
   btn.textContent = 'Guardando...';
+  // Timeout de seguridad: si en 12s no hay respuesta, re-habilita
+  var safetyTimer = setTimeout(function(){
+    if(btn.disabled){ btn.disabled=false; btn.textContent='💾 Guardar y Notificar'; msgEl.textContent='⚠️ Timeout - reintentá'; }
+  }, 12000);
   msgEl.className = 'msg';
 
   function v(campo) {
@@ -560,6 +566,7 @@ function guardarPartido(idx, id) {
 
   var p = partidos[idx];
   sbPatch('partidos', id, data, function(err) {
+    clearTimeout(safetyTimer);
     if(err) {
       btn.disabled = false;
       btn.textContent = '💾 Guardar y Notificar';
