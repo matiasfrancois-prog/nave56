@@ -460,13 +460,13 @@ function renderMiEquipo(){
   fin.forEach(function(p){var loc=eqs.indexOf(p.local)>=0;var a=+(loc?p.score_local:p.score_visit)||0,b=+(loc?p.score_visit:p.score_local)||0;PF+=a;PC+=b;if(a>b)G++;else if(a<b)P++;else E++;});
   var logo=(typeof EQUIPO_LOGOS!=='undefined'&&EQUIPO_LOGOS[miEq.agrup])||NAVE56_LOGO;
   var html='<div class="mieq-head"><img src="'+logo+'" alt=""><div><div class="mieq-name">'+miEq.agrup+(miEq.cat==='AB'?'':' '+miEq.cat)+'</div>';
-  html+='<div class="mieq-stats"><span>Jugados <b>'+fin.length+'</b></span><span>Ganados <b>'+G+'</b></span><span>Empatados <b>'+E+'</b></span><span>Perdidos <b>'+P+'</b></span><span>Puntos <b>'+PF+'–'+PC+'</b></span></div></div></div>';
+  html+='</div></div>';
   function fila(p,tipo){
     var loc=eqs.indexOf(p.local)>=0;var mio=loc?p.local:p.visitante;var rival=loc?p.visitante:p.local;
     var dia=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
     var r='<div class="mieq-row'+(tipo==='live'?' live':'')+'"><div class="mieq-when">'+dia+'<b>'+(p.hora||'')+'</b></div>';
     r+='<div class="mieq-mid"><div class="mieq-vs">'+mio+' vs '+rival+'</div><div class="mieq-sub">'+miEqCanchaTxt(p.cancha)+(p.referee?' · 🏳 '+p.referee:'')+'</div></div>';
-    if(tipo==='fin'){var a=+(loc?p.score_local:p.score_visit)||0,b=+(loc?p.score_visit:p.score_local)||0;var k=a>b?'g':a<b?'p':'e';r+='<span class="mieq-res '+k+'">'+(k==='g'?'G':k==='p'?'P':'E')+' '+a+'–'+b+'</span>';}
+    if(tipo==='fin'){var sl=p.score_local||0,sv=p.score_visit||0;var a=+(loc?sl:sv)||0,b=+(loc?sv:sl)||0;var k=a>b?'g':a<b?'p':'e';r+='<span class="mieq-res '+k+'" style="font-size:13px;font-weight:700;padding:4px 10px;white-space:nowrap;">'+sl+' – '+sv+'</span>';}
     else if(tipo==='live'){r+='<span class="badge badge-live">● '+(p.score_local||0)+'–'+(p.score_visit||0)+'</span>';}
     else{r+='<button class="mieq-map" onclick="verCanchaEnMapa('+(parseInt(p.cancha,10)||0)+',event)">📍 Ver cancha</button>';}
     return r+'</div>';
