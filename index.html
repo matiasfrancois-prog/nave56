@@ -980,22 +980,39 @@ function renderHistorial(){
   var fin=state.partidos.filter(function(p){return (p.estado||'').toLowerCase()==='finalizado';});
   if(!fin.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div>';return;}
   var html='';
-  fin.forEach(function(p){
-    var catColH=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
-    var tipoH=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'?{oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||'':'';
-    var refH='';
-    if(p.referee)refH+='🏳 '+p.referee;
-    if(p.touch1)refH+=(refH?' · ':'')+p.touch1;
-    if(p.touch2)refH+=(refH?' · ':'')+p.touch2;
+  // Más recientes primero (orden inverso)
+  fin.slice().reverse().forEach(function(p){
+    var sl=p.score_local||0;
+    var sv=p.score_visit||0;
+    var localGana=sl>sv;var visitGana=sv>sl;var empate=sl===sv;
+    var catCol=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
+    var tipoH=p.tipo&&p.tipo!=='grupo'?({oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||''):'';
+    var diaStr=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':('Día '+p.dia);
     html+='<div class="historial-card">';
-    html+='<div style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;">';
-    html+='<span style="background:'+catColH+';color:#fff;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">CAT '+p.cat+'</span>';
-    if(tipoH)html+='<span style="background:rgba(200,168,75,.2);color:#c8a84b;border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700;">'+tipoH+'</span>';
+    // Header: categoría + tipo + cancha + hora
+    html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">';
+    html+='<span style="background:'+catCol+';color:#fff;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">CAT '+p.cat+'</span>';
+    if(tipoH)html+='<span style="background:rgba(200,168,75,.15);color:#c8a84b;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">'+tipoH+'</span>';
+    html+='<span style="margin-left:auto;font-size:11px;color:var(--muted);">C'+p.cancha+' · '+diaStr+' '+p.hora+'</span>';
     html+='</div>';
-    html+='<div style="font-weight:700;font-size:16px;">'+p.local+' vs '+p.visitante+'</div>';
-    html+='<div class="historial-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-    html+='<div class="historial-meta">Cancha '+p.cancha+' · Día '+p.dia+' · '+(p.hora||'')+'</div>';
-    if(refH)html+='<div style="font-size:12px;color:var(--muted);margin-top:4px;">'+refH+'</div>';
+    // Resultado: local SCORE – SCORE visitante
+    html+='<div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;margin-bottom:8px;">';
+    // Local
+    html+='<div style="text-align:right;">';
+    html+='<div style="font-size:13px;font-weight:'+(localGana?'800':'600')+';color:'+(localGana?'var(--fg)':'var(--muted)')+';">'+p.local+'</div>';
+    if(localGana)html+='<div style="font-size:10px;color:#3fb950;font-weight:700;">GANADOR 🏆</div>';
+    html+='</div>';
+    // Score central
+    html+='<div style="text-align:center;font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--accent-hi);letter-spacing:2px;">'+sl+' – '+sv+'</div>';
+    // Visitante
+    html+='<div style="text-align:left;">';
+    html+='<div style="font-size:13px;font-weight:'+(visitGana?'800':'600')+';color:'+(visitGana?'var(--fg)':'var(--muted)')+';">'+p.visitante+'</div>';
+    if(visitGana)html+='<div style="font-size:10px;color:#3fb950;font-weight:700;">GANADOR 🏆</div>';
+    html+='</div>';
+    html+='</div>';
+    if(empate)html+='<div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:6px;">EMPATE</div>';
+    // Árbitros
+    if(p.referee){html+='<div style="font-size:11px;color:var(--muted);border-top:1px solid var(--faint);padding-top:6px;margin-top:4px;">🏳 Árbitro: '+p.referee+'</div>';}
     html+='</div>';
   });
   list.innerHTML=html;
@@ -2334,6 +2351,7 @@ addEventListener('DOMContentLoaded',function(){
   </div>
   <div class="sidebar-nav">
     <button class="nav-tab active" id="tab-fixture-nav" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
+    <button class="nav-tab" id="tab-historial-nav" onclick="showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Resultados</span></button>
     <button class="nav-tab" id="tab-miequipo-nav" onclick="showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
     <button class="nav-tab" id="tab-canchas-nav" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
     <button class="nav-tab" id="tab-agrupaciones-nav" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
@@ -2406,6 +2424,11 @@ addEventListener('DOMContentLoaded',function(){
   <div class="partidos-list" id="partidos-list">
     <div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos cargados aún</p></div>
   </div>
+</div>
+
+<div class="tab-panel" id="tab-historial">
+  <div class="section-title">✅ Resultados</div>
+  <div id="historial-list"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div></div>
 </div>
 
 <div class="tab-panel" id="tab-canchas">
@@ -2946,6 +2969,7 @@ addEventListener('DOMContentLoaded',function(){
 <nav class="mobile-nav">
   <div class="mobile-nav-inner">
     <button class="nav-tab active" id="tab-fixture-mob" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
+    <button class="nav-tab" id="tab-historial-mob" onclick="showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Resultados</span></button>
     <button class="nav-tab" id="tab-miequipo-mob" onclick="showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
     <button class="nav-tab" id="tab-canchas-mob" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
     <button class="nav-tab" id="tab-agrupaciones-mob" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
