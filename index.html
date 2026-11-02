@@ -2193,8 +2193,7 @@ function fetchSupabase(){
   mostrarDebug('fetchSupabase iniciado...');
   if(typeof fetch!=='undefined'){
     mostrarDebug('usando fetch() nativo');
-    var urlTs=url+'&_t='+Date.now();
-    fetch(urlTs,{method:'GET',headers:headers})
+    fetch(url,{method:'GET',headers:headers})
       .then(function(r){
         mostrarDebug('fetch() status:'+r.status);
         if(!r.ok){mostrarDebug('ERROR HTTP '+r.status);return null;}

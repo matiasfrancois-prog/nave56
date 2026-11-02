@@ -1,7 +1,7 @@
 // NAVE56 Service Worker — SOLO push notifications, SIN cache
 importScripts('https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js');
 
-var CACHE_VERSION = 'nave56-v202611020009';
+var CACHE_VERSION = 'nave56-v202611020010';
 
 // Al instalar: skipWaiting inmediato, sin precachear nada
 self.addEventListener('install', function(event) {
