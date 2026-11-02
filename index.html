@@ -144,7 +144,8 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .partido-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;transition:border-color .15s;}
 .partido-card:hover{border-color:var(--faint);}
 .partido-card.live{border-color:var(--green);box-shadow:0 0 0 1px var(--green),0 4px 20px var(--live-glow);}
-.partido-card.finalizado{opacity:.6;}
+.partido-card.finalizado{border-color:var(--faint);background:var(--surface);}
+.score-fin{font-size:22px;font-weight:800;color:var(--accent);letter-spacing:.02em;line-height:1;}
 .team-name{font-weight:600;font-size:15px;letter-spacing:.01em;}
 .team-left{text-align:right;}
 .team-right{text-align:left;}
@@ -789,7 +790,8 @@ function renderPartidos(){
     html+='<img class="partido-logo" src="'+NAVE56_LOGO+'" alt="NAVE56">';
     html+='<span style="font-size:10px;font-weight:700;color:'+catColor+';letter-spacing:.06em;text-transform:uppercase;">'+catLabel+'</span>'+(tipoLabel?'<span style="background:rgba(200,168,75,.2);color:#c8a84b;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:700;margin-left:3px;">'+tipoLabel+'</span>':'');
     html+='<span class="badge '+bc+'">'+bt+'</span>';
-    if(p.estado!=='proximo')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
+    if(p.estado==='finalizado')html+='<div class="score-fin">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
+    else if(p.estado==='live')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
     html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
     if(diaLabel)html+=' <span style="font-size:11px;color:var(--muted);">'+diaLabel+'</span>';
     html+='</div>';
@@ -2328,7 +2330,6 @@ addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab active" id="tab-fixture-nav" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
     <button class="nav-tab" id="tab-miequipo-nav" onclick="showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
     <button class="nav-tab" id="tab-canchas-nav" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
-    <button class="nav-tab" id="tab-historial-nav" onclick="showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Finalizados</span></button>
     <button class="nav-tab" id="tab-agrupaciones-nav" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
     <button class="nav-tab" id="tab-cronograma-nav" onclick="showTab('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
     <button class="nav-tab" id="tab-mapa-nav" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
@@ -2405,13 +2406,6 @@ addEventListener('DOMContentLoaded',function(){
   <div class="canchas-grid" id="canchas-grid"></div>
 </div>
 
-<div class="tab-panel" id="tab-historial">
-  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
-    <span>✅ Partidos Finalizados</span>
-    <button onclick="fetchSupabase();renderHistorial();setTimeout(renderHistorial,1200);" style="background:var(--accent-lo);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;font-weight:600;">🔄 Actualizar</button>
-  </div>
-  <div id="historial-list"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div></div>
-</div>
 
 <div class="tab-panel" id="tab-mapa">
   <div class="mapa-container" id="mapaContainer" style="position:relative;">
@@ -2947,7 +2941,6 @@ addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab active" id="tab-fixture-mob" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
     <button class="nav-tab" id="tab-miequipo-mob" onclick="showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
     <button class="nav-tab" id="tab-canchas-mob" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
-    <button class="nav-tab" id="tab-historial-mob" onclick="showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Finalizados</span></button>
     <button class="nav-tab" id="tab-agrupaciones-mob" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
     <button class="nav-tab" id="tab-cronograma-mob" onclick="showTab('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
     <button class="nav-tab" id="tab-mapa-mob" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
