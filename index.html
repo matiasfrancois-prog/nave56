@@ -618,7 +618,7 @@ function showTab(name){
   if(m)m.classList.add('active');
   if(name==='mapa')setTimeout(renderMapa,100);
   if(name==='canchas')renderCanchas();
-  if(name==='historial'){fetchSupabase();setTimeout(renderHistorial,300);setTimeout(renderHistorial,1200);}
+  if(name==='historial'){renderHistorial();fetchSupabase();setTimeout(renderHistorial,600);setTimeout(renderHistorial,2000);}
   if(name==='gastro')renderGastroPublic();
   if(name==='sponsors')renderSponsors();
   if(name==='agrupaciones')renderAgrupaciones();
@@ -2406,7 +2406,10 @@ addEventListener('DOMContentLoaded',function(){
 </div>
 
 <div class="tab-panel" id="tab-historial">
-  <div class="section-title">✅ Partidos Finalizados</div>
+  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span>✅ Partidos Finalizados</span>
+    <button onclick="fetchSupabase();renderHistorial();setTimeout(renderHistorial,1200);" style="background:var(--accent-lo);border:1px solid var(--accent);color:var(--accent);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer;font-weight:600;">🔄 Actualizar</button>
+  </div>
   <div id="historial-list"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div></div>
 </div>
 
