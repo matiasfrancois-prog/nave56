@@ -246,8 +246,8 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .chat-reply-send{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;margin-top:6px;}
 .chat-sent-ok{color:var(--green);font-size:14px;font-weight:600;text-align:center;padding:12px;}
 /* AGRUPACIONES */
-.agrup-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-@media(min-width:1100px){.agrup-grid{grid-template-columns:repeat(3,1fr);}}
+.agrup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%;}
+@media(min-width:1200px){.agrup-grid{grid-template-columns:repeat(4,1fr);}}
 .agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;overflow:hidden;}
 .agrup-header{display:flex;align-items:center;gap:12px;}
 .agrup-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);min-width:28px;}
@@ -2752,7 +2752,7 @@ addEventListener('DOMContentLoaded',function(){
   <div id="mieq-body"></div>
 </div>
 
-<div class="tab-panel" id="tab-agrupaciones">
+<div class="tab-panel" id="tab-agrupaciones" style="max-width:none;width:100%;">
   <div class="section-title">🛡 Agrupaciones</div>
   <div class="agrup-grid" id="agrup-grid"></div>
 </div>
