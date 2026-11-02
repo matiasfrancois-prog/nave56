@@ -1256,8 +1256,11 @@ function addPartido(){
     [local,visit].forEach(function(eq){if(!seguido&&(p.local===eq||p.visitante===eq)){seguido=p;eqSeg=eq;}});
   });
   if(seguido){showToast('❌ '+eqSeg+' ya juega a las '+seguido.hora+' ('+seguido.local+' vs '+seguido.visitante+'). No puede jugar partidos seguidos: dejá al menos '+(DESCANSO_MIN/60)+' h entre sus partidos.');return;}
-  state.partidos.push({local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,tipo:tipo,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]});
-  saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado ✓');
+  var nuevoPartido={local:local,visitante:visit,cancha:cancha,dia:dia,hora:hora,estado:estado,score_local:0,score_visit:0,cat:cat,tipo:tipo,referee:referee,touch1:touch1,touch2:touch2,tarjetas:[]};
+  state.partidos.push(nuevoPartido);
+  var idx=state.partidos.length-1;
+  saveState();renderPartidos();renderAdminPartidos();showToast('Partido agregado — guardando en BD...');
+  insertSupabase(nuevoPartido,idx);
 }
 function renderAdminPartidos(){
   var list=document.getElementById('admin-partidos-list');
@@ -2151,6 +2154,48 @@ setInterval(function(){
 },30000);
 
 // ── ESCRITURA A SUPABASE (sincroniza cada partido modificado) ────────────
+function insertSupabase(partido,idx){
+  // INSERT nuevo partido en Supabase y actualiza el id en state
+  if(!partido)return;
+  try{
+    var bodyObj={
+      local:partido.local,
+      visitante:partido.visitante,
+      cancha:partido.cancha,
+      dia:parseInt(partido.dia)||1,
+      horario:partido.hora,
+      estado:partido.estado||'proximo',
+      pts_l:0,
+      pts_v:0,
+      modalidad:partido.cat||'A',
+      referee:partido.referee||'',
+      ayudantes:partido.touch1||''
+    };
+    var body=JSON.stringify(bodyObj);
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST',SUPABASE_URL+'/rest/v1/partidos',true);
+    xhr.setRequestHeader('apikey',SUPABASE_KEY);
+    xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.setRequestHeader('Prefer','return=representation');
+    xhr.onload=function(){
+      if(xhr.status===200||xhr.status===201){
+        try{
+          var rows=JSON.parse(xhr.responseText);
+          if(rows&&rows.length&&rows[0].id){
+            if(state.partidos[idx])state.partidos[idx].id=rows[0].id;
+            saveState();
+            showToast('✅ Partido creado en BD');
+          }
+        }catch(e){showToast('✅ Partido creado (sin id recuperado)');}
+      } else {
+        showToast('⚠️ Error al crear en BD '+xhr.status+': '+xhr.responseText.substring(0,100));
+      }
+    };
+    xhr.onerror=function(){showToast('⚠️ Error de red al crear partido');};
+    xhr.send(body);
+  }catch(e){showToast('⚠️ Error insertSupabase: '+e.message);}
+}
 function saveSupabase(partido){
   // partido = objeto del state.partidos
   if(!partido)return;
@@ -2169,8 +2214,8 @@ function saveSupabase(partido){
       xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=eq.'+partido.id,true);
       xhr.setRequestHeader('Prefer','return=minimal');
     } else {
-      // Sin id: partido no cargado desde Supabase aún
-      showToast('⚠️ Partido sin ID de BD — esperá que cargue el fixture');
+      // Sin id: partido no estaba en BD todavía
+      showToast('⚠️ Partido sin ID de BD — no se puede guardar');
       return;
     }
     xhr.setRequestHeader('apikey',SUPABASE_KEY);
