@@ -1368,9 +1368,10 @@ function renderAdminPartidos(){
 }
 function guardarResultado(i){
   if(!state.partidos[i])return;
+  state.partidos[i].estado='finalizado';
   saveState();
   saveSupabase(state.partidos[i]);
-  renderPartidos();renderHistorial();renderCanchas();
+  renderPartidos();renderHistorial();renderCanchas();renderAdminPartidos();
   showToast('✅ Resultado guardado');
 }
 function guardarYNotificar(i){
@@ -2127,13 +2128,17 @@ function saveSupabase(partido){
       visitante:partido.visitante,
       cancha:partido.cancha,
       dia:partido.dia,
-      hora:partido.hora,
+      horario:partido.hora,
       estado:partido.estado,
+      pts_l:partido.score_local||0,
+      pts_v:partido.score_visit||0,
       score_local:partido.score_local||0,
       score_visit:partido.score_visit||0,
+      modalidad:partido.cat||'A',
       cat:partido.cat||'A',
       tipo:partido.tipo||'grupo',
       referee:partido.referee||'',
+      ayudantes:partido.touch1||'',
       touch1:partido.touch1||'',
       touch2:partido.touch2||'',
       tarjetas:partido.tarjetas||[]
