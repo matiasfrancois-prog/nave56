@@ -2196,11 +2196,14 @@ function fetchSupabase(){
     fetch(url,{method:'GET',headers:headers})
       .then(function(r){
         mostrarDebug('fetch() status:'+r.status);
-        if(!r.ok){mostrarDebug('ERROR HTTP '+r.status);return null;}
-        return r.json();
+        return r.text().then(function(txt){
+          mostrarDebug('body:'+txt.substring(0,120));
+          if(!r.ok){return null;}
+          try{return JSON.parse(txt);}catch(e){mostrarDebug('parse err');return null;}
+        });
       })
       .then(function(data){
-        if(!data){mostrarDebug('data null/undefined');return;}
+        if(!data){mostrarDebug('data null');return;}
         mostrarDebug('OK items:'+data.length);
         procesarPartidosSupabase(data);
       })
