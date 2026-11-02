@@ -644,8 +644,17 @@ function enviarNotifResultado(titulo, mensaje, cb) {
   xhr.open('POST', ONESIGNAL_API, true);
   xhr.setRequestHeader('Content-Type', 'application/json');
   xhr.setRequestHeader('Authorization', 'Key ' + ONESIGNAL_REST_KEY);
-  xhr.onload = function() { cb(xhr.status===200); };
-  xhr.onerror = function() { cb(false); };
+  xhr.onload = function() {
+    console.log('OneSignal status:', xhr.status, xhr.responseText);
+    if(xhr.status===200){cb(true);}
+    else{
+      // Mostrar el error exacto de OneSignal para diagnosticar
+      var errMsg='';try{var r=JSON.parse(xhr.responseText);errMsg=JSON.stringify(r.errors||r);}catch(e){errMsg=xhr.responseText;}
+      toast('⚠️ OneSignal: ' + xhr.status + ' — ' + errMsg.substring(0,120));
+      cb(false);
+    }
+  };
+  xhr.onerror = function() { toast('❌ Error de red enviando notificación'); cb(false); };
   xhr.send(payload);
 }
 
