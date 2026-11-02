@@ -348,6 +348,18 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .mieq-res.g{background:rgba(46,160,67,.18);color:#3fb950;}
 .mieq-res.p{background:rgba(248,81,73,.15);color:#f85149;}
 .mieq-res.e{background:var(--faint);color:var(--muted);}
+.mieq-res-full{font-size:13px;font-weight:600;padding:6px 4px;margin-top:4px;border-radius:6px;text-align:center;}
+.mieq-res-full strong{font-size:15px;}
+.mieq-res-full.g{background:rgba(46,160,67,.12);color:var(--fg);}
+.mieq-res-full.p{background:rgba(248,81,73,.10);color:var(--fg);}
+.mieq-res-full.e{background:var(--faint);color:var(--fg);}
+.mieq-row-fin{padding:10px 12px;border-bottom:1px solid var(--faint);border-radius:8px;margin-bottom:4px;}
+.mieq-row-fin.g{background:rgba(46,160,67,.07);}
+.mieq-row-fin.p{background:rgba(248,81,73,.06);}
+.mieq-row-fin.e{background:var(--faint);}
+.mieq-fin-meta{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.mieq-fin-score{font-size:14px;font-weight:600;color:var(--fg);line-height:1.4;}
+.mieq-fin-score strong{font-size:18px;font-weight:800;}
 .mieq-map{background:none;border:1px solid var(--border);color:var(--accent);border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap;}
 .mieq-chips{display:flex;flex-wrap:wrap;gap:6px;}
 .mieq-chip{border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:12px;}
@@ -464,10 +476,19 @@ function renderMiEquipo(){
   function fila(p,tipo){
     var loc=eqs.indexOf(p.local)>=0;var mio=loc?p.local:p.visitante;var rival=loc?p.visitante:p.local;
     var dia=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
+    if(tipo==='fin'){
+      var sl=p.score_local||0,sv=p.score_visit||0;
+      var a=+(loc?sl:sv)||0,b=+(loc?sv:sl)||0;
+      var k=a>b?'g':a<b?'p':'e';
+      var r='<div class="mieq-row-fin '+k+'">';
+      r+='<div class="mieq-fin-meta">'+dia+' '+miEqCanchaTxt(p.cancha)+(p.referee?' · 🏳 '+p.referee:'')+'</div>';
+      r+='<div class="mieq-fin-score">'+p.local+' <strong>'+sl+'</strong> – <strong>'+sv+'</strong> '+p.visitante+'</div>';
+      r+='</div>';
+      return r;
+    }
     var r='<div class="mieq-row'+(tipo==='live'?' live':'')+'"><div class="mieq-when">'+dia+'<b>'+(p.hora||'')+'</b></div>';
     r+='<div class="mieq-mid"><div class="mieq-vs">'+mio+' vs '+rival+'</div><div class="mieq-sub">'+miEqCanchaTxt(p.cancha)+(p.referee?' · 🏳 '+p.referee:'')+'</div></div>';
-    if(tipo==='fin'){var sl=p.score_local||0,sv=p.score_visit||0;var a=+(loc?sl:sv)||0,b=+(loc?sv:sl)||0;var k=a>b?'g':a<b?'p':'e';r+='<span class="mieq-res '+k+'" style="font-size:13px;font-weight:700;padding:4px 10px;white-space:nowrap;">'+sl+' – '+sv+'</span>';}
-    else if(tipo==='live'){r+='<span class="badge badge-live">● '+(p.score_local||0)+'–'+(p.score_visit||0)+'</span>';}
+    if(tipo==='live'){r+='<span class="badge badge-live">● '+(p.score_local||0)+'–'+(p.score_visit||0)+'</span>';}
     else{r+='<button class="mieq-map" onclick="verCanchaEnMapa('+(parseInt(p.cancha,10)||0)+',event)">📍 Ver cancha</button>';}
     return r+'</div>';
   }
@@ -2117,8 +2138,8 @@ function saveSupabase(partido){
   // partido = objeto del state.partidos
   if(!partido)return;
   try{
-    var body=JSON.stringify({
-      id:partido.id||undefined,
+    var isUpdate=!!partido.id;
+    var bodyObj={
       local:partido.local,
       visitante:partido.visitante,
       cancha:partido.cancha,
@@ -2127,21 +2148,19 @@ function saveSupabase(partido){
       estado:partido.estado,
       pts_l:partido.score_local||0,
       pts_v:partido.score_visit||0,
-      score_local:partido.score_local||0,
-      score_visit:partido.score_visit||0,
       modalidad:partido.cat||'A',
-      cat:partido.cat||'A',
       tipo:partido.tipo||'grupo',
       referee:partido.referee||'',
       ayudantes:partido.touch1||'',
-      touch1:partido.touch1||'',
-      touch2:partido.touch2||'',
       tarjetas:partido.tarjetas||[]
-    });
+    };
+    // NO incluir id en el body para evitar error de PK en Supabase
+    var body=JSON.stringify(bodyObj);
     var xhr=new XMLHttpRequest();
-    if(partido.id){
+    if(isUpdate){
       // UPDATE existente
       xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=eq.'+partido.id,true);
+      xhr.setRequestHeader('Prefer','return=minimal');
     } else {
       // INSERT nuevo — Supabase asignará id
       xhr.open('POST',SUPABASE_URL+'/rest/v1/partidos',true);
@@ -2151,15 +2170,20 @@ function saveSupabase(partido){
     xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
     xhr.setRequestHeader('Content-Type','application/json');
     xhr.onload=function(){
-      if((xhr.status===200||xhr.status===201)&&!partido.id){
-        try{
-          var res=JSON.parse(xhr.responseText);
-          if(res&&res[0]&&res[0].id)partido.id=res[0].id;
-        }catch(e){}
+      if(xhr.status===200||xhr.status===201||xhr.status===204){
+        if(!isUpdate){
+          try{
+            var res=JSON.parse(xhr.responseText);
+            if(res&&res[0]&&res[0].id)partido.id=res[0].id;
+          }catch(e){}
+        }
+      } else {
+        showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,80));
       }
     };
+    xhr.onerror=function(){showToast('⚠️ Error de red al guardar en Supabase');};
     xhr.send(body);
-  }catch(e){}
+  }catch(e){showToast('⚠️ Error interno saveSupabase: '+e.message);}
 }
 // ─────────────────────────────────────────────────────────────────────────
 
