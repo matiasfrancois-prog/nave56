@@ -2259,7 +2259,8 @@ function initWatermark(){
     wm.style.backgroundImage='url("'+mogImg.src+'")';
   }
 }
-window.// SW CLEANUP — eliminar todo SW viejo y limpiar cache
+
+// SW CLEANUP — eliminar todo SW viejo y limpiar cache
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(function(regs) {
     regs.forEach(function(r){ r.unregister(); });
