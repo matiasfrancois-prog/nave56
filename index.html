@@ -252,7 +252,7 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .chat-sent-ok{color:var(--green);font-size:14px;font-weight:600;text-align:center;padding:12px;}
 /* AGRUPACIONES */
 .agrup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
-.agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;}
+.agrup-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px;width:100%;box-sizing:border-box;overflow:hidden;}
 .agrup-header{display:flex;align-items:center;gap:12px;}
 .agrup-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--accent);min-width:28px;}
 .agrup-escudo{width:48px;height:48px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;overflow:hidden;}
@@ -262,9 +262,9 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .agrup-provincia{font-size:13px;color:var(--muted);margin-top:2px;}
 .agrup-contacto{display:flex;flex-direction:column;gap:4px;padding-top:4px;border-top:1px solid var(--border);}
 .agrup-contacto-name{font-size:14px;color:var(--fg);}
-.agrup-wa{display:inline-flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;max-width:100%;}
+.agrup-wa{display:flex;align-items:center;gap:6px;background:#25d366;color:#fff;border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:100%;box-sizing:border-box;justify-content:center;}
 .agrup-wa:hover{background:#1ebe5d;}
-.agrup-ig{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:fit-content;max-width:100%;}
+.agrup-ig{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;margin-top:2px;width:100%;box-sizing:border-box;justify-content:center;}
 .agrup-ig:hover{opacity:.85;}
 .agrup-sin-contacto{font-size:12px;color:var(--muted);font-style:italic;}
 /* COUNTDOWN */
