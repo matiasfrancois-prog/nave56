@@ -79,7 +79,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .sidebar-actions{padding:12px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:6px;}
 /* CONTENIDO */
 .app-body{flex:1;min-width:0;display:flex;flex-direction:column;}
-.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 24px;padding-top:calc(11px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:11px 24px;padding-top:calc(11px + env(safe-area-inset-top,0px));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;overflow:hidden;min-height:48px;}
 .top-bar-title{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--accent);letter-spacing:.08em;opacity:.7;}
 .header-actions{display:flex;gap:8px;align-items:center;}
 .main-content{flex:1;padding:24px 20px;max-width:980px;width:100%;}
@@ -93,14 +93,16 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
   .sidebar{display:none;}
   .mobile-nav{display:block;}
   .main-content{padding:16px 14px 140px;}
-  .top-bar{padding:10px 14px;}
+  .top-bar{padding:8px 12px;gap:6px;}
   /* Header compacto en mobile */
   .header-sponsor-logo{display:none;}
+  .top-bar-title{display:none;}
   .btn-pdf .btn-pdf-label{display:none;}
-  .btn-pdf{padding:7px 10px;font-size:15px;}
-  .btn-open-admin{padding:7px 10px;font-size:15px;}
-  .mog-strip{padding:3px 6px;}
-  .mog-strip-img{height:22px;}
+  .btn-pdf{padding:6px 10px;font-size:13px;}
+  .btn-open-admin{padding:6px 10px;font-size:13px;}
+  .mog-strip{padding:3px 6px;max-width:120px;}
+  .mog-strip-img{height:20px;}
+  .header-actions{gap:6px;flex-wrap:nowrap;}
   .section-title{font-size:20px;}
   .team-name{font-size:16px;}
   .partido-score{font-size:28px;}
