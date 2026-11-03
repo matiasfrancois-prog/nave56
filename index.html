@@ -2224,6 +2224,10 @@ function saveSupabase(partido){
     xhr.onload=function(){
       if(xhr.status===200||xhr.status===204){
         showToast('✅ Guardado en BD ('+partido.estado+')');
+        // Disparar notificación push si el estado es relevante
+        if(partido.estado==='live'||partido.estado==='finalizado'){
+          enviarNotifPartido(partido);
+        }
       } else {
         showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,120));
       }
@@ -2231,6 +2235,74 @@ function saveSupabase(partido){
     xhr.onerror=function(){showToast('⚠️ Error de red al guardar');};
     xhr.send(body);
   }catch(e){showToast('⚠️ Error interno saveSupabase: '+e.message);}
+}
+
+function enviarNotifPartido(partido){
+  try{
+    var titulo,msg;
+    if(partido.estado==='live'){
+      titulo='🔴 EN VIVO — NAVE56';
+      msg=partido.local+' vs '+partido.visitante+' · Cancha '+partido.cancha;
+    } else if(partido.estado==='finalizado'){
+      titulo='🏉 Resultado NAVE56';
+      msg=partido.local+' '+( partido.score_local||0)+' — '+(partido.score_visit||0)+' '+partido.visitante;
+    } else {
+      return;
+    }
+    var bodyObj={
+      app_id:'57793616-4667-47c4-946d-5224d6f156b7',
+      headings:{en:titulo,es:titulo},
+      contents:{en:msg,es:msg},
+      included_segments:['All'],
+      url:'https://matiasfrancois-prog.github.io/nave56/'
+    };
+    var xhr2=new XMLHttpRequest();
+    xhr2.open('POST','https://api.onesignal.com/notifications',true);
+    xhr2.setRequestHeader('Content-Type','application/json');
+    var osKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
+    xhr2.setRequestHeader('Authorization','Key '+osKey);
+    xhr2.onload=function(){
+      if(xhr2.status===200){
+        try{
+          var resp=JSON.parse(xhr2.responseText);
+          if(resp.id)showToast('🔔 Notificación enviada ('+( resp.recipients||0)+' subs)');
+        }catch(e){}
+      }
+    };
+    xhr2.send(JSON.stringify(bodyObj));
+  }catch(e){}
+}
+
+function activarNotificaciones(){
+  if(typeof OneSignal==='undefined'&&(!window.OneSignalDeferred)){
+    showToast('⚠️ Notificaciones no disponibles en este navegador');return;
+  }
+  try{
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    window.OneSignalDeferred.push(function(OS){
+      OS.Slidedown.promptPush().then(function(){
+        OS.User.PushSubscription.optIn().then(function(){
+          showToast('✅ Notificaciones activadas');
+          actualizarBtnNotif();
+        }).catch(function(){
+          showToast('ℹ️ Permiso no otorgado');
+        });
+      });
+    });
+  }catch(e){showToast('⚠️ Error al activar notificaciones: '+e.message);}
+}
+
+function actualizarBtnNotif(){
+  var btn=document.getElementById('btn-notif');
+  if(!btn)return;
+  try{
+    window.OneSignalDeferred=window.OneSignalDeferred||[];
+    window.OneSignalDeferred.push(function(OS){
+      var suscripto=OS.User.PushSubscription.optedIn;
+      btn.title=suscripto?'Notificaciones activas ✅':'Activar notificaciones';
+      btn.style.opacity=suscripto?'1':'0.6';
+    });
+  }catch(e){}
 }
 // ─────────────────────────────────────────────────────────────────────────
 
