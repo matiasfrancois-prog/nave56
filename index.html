@@ -86,13 +86,29 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 /* MOBILE */
 .mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:200;padding-bottom:env(safe-area-inset-bottom,0px);}
 .mobile-nav-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:4px 4px;}
+.mobile-nav-inner.mn5{grid-template-columns:repeat(5,1fr);padding:6px 6px 4px;}
+.mn5 .nav-tab .tab-icon{font-size:22px;}
+.mn5 .nav-tab .tab-label{font-size:11px;font-weight:600;}
+.mn5 .nav-tab.active{background:transparent;color:var(--fg);}
+.mn5 .nav-tab.active .tab-label{color:#1a2738;font-weight:800;}
+.mn5 .nav-tab.active:after{content:'';display:block;width:18px;height:3px;border-radius:3px;background:#c8a84b;margin-top:1px;}
+#mas-velo{display:none;position:fixed;inset:0;background:rgba(10,14,20,.35);z-index:198;}
+#mas-velo.open{display:block;}
+#mas-hoja{position:fixed;left:0;right:0;bottom:0;z-index:199;background:var(--surface);border-radius:20px 20px 0 0;box-shadow:0 -10px 30px rgba(0,0,0,.15);padding:10px 14px calc(84px + env(safe-area-inset-bottom,0px));transform:translateY(105%);transition:transform .25s ease;}
+#mas-hoja.open{transform:translateY(0);}
+.mas-asa{width:40px;height:4px;border-radius:4px;background:var(--faint);margin:0 auto 12px;}
+.mas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.mas-grid .nav-tab{flex-direction:column;align-items:center;gap:4px;padding:12px 4px;border-radius:12px;background:var(--card);width:100%;}
+.mas-grid .nav-tab .tab-icon{font-size:24px;}
+.mas-grid .nav-tab .tab-label{font-size:11px;font-weight:600;white-space:nowrap;}
+@media(min-width:701px){#mas-hoja,#mas-velo{display:none!important;}}
 .mobile-nav .nav-tab{flex-direction:column;gap:3px;padding:8px 4px;text-align:center;align-items:center;border-radius:8px;width:100%;min-width:0;}
 .mobile-nav .nav-tab .tab-icon{font-size:20px;}
 .mobile-nav .nav-tab .tab-label{font-size:10px;white-space:nowrap;font-weight:500;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
 @media(max-width:700px){
   .sidebar{display:none;}
   .mobile-nav{display:block;}
-  .main-content{padding:16px 14px 160px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
+  .main-content{padding:16px 14px 100px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
   .top-bar{display:none;}
   .section-title{font-size:20px;}
   .team-name{font-size:16px;}
@@ -447,11 +463,13 @@ button:focus{outline:none;}button:focus-visible{outline:2px solid var(--accent);
   .cd-t b{font-size:28px;}
   .fx-bar{flex-direction:column;align-items:stretch;}
   .seg{width:100%;}.seg button{flex:1;padding:9px 6px;}
-  .fx-row{grid-template-columns:52px 1fr;gap:10px;padding:12px;}
-  .fx-row .fx-pill{grid-column:1;grid-row:2;justify-self:start;font-size:10px;padding:3px 7px;}
-  .fx-eq{grid-column:2;grid-row:1/3;font-size:14px;gap:6px;}
+  .fx-row{grid-template-columns:1fr auto;gap:8px 10px;padding:12px 14px;}
+  .fx-cancha{display:flex;align-items:baseline;gap:6px;}
+  .fx-cancha b{display:inline;font-size:17px;}
+  .fx-row .fx-pill{grid-column:2;grid-row:1;font-size:10px;padding:3px 8px;}
+  .fx-row>div:nth-child(2){grid-column:1/3;grid-row:2;}
+  .fx-eq{font-size:15px;gap:8px;}
   .fx-eq .sc{font-size:22px;min-width:44px;}
-  .fx-cancha b{font-size:18px;}
 }
 </style>
 <script>
@@ -727,6 +745,8 @@ function showTab(name){
   if(p)p.classList.add('active');
   if(t)t.classList.add('active');
   if(m)m.classList.add('active');
+  var mm=document.getElementById('tab-mas-mob');if(mm&&typeof MAS_TABS!=='undefined'&&MAS_TABS.indexOf(name)>-1)mm.classList.add('active');
+  window.scrollTo(0,0);
   if(name==='mapa')setTimeout(renderMapa,100);
   if(name==='canchas')renderCanchas();
   if(name==='historial'){renderHistorial();fetchSupabase();setTimeout(renderHistorial,600);setTimeout(renderHistorial,2000);}
@@ -2455,7 +2475,7 @@ addEventListener('DOMContentLoaded',function(){
     <div>
       <div class="hero-kicker">56° Encuentro Nacional de Veteranos</div>
       <div class="hero-title">NAVE56 · Buenos Aires</div>
-      <div class="hero-meta"><span>📅 21 y 22 de noviembre</span><span>📍 Club Hindú, Don Torcuato</span><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" rel="noopener">Cómo llegar →</a></div>
+      <div class="hero-meta"><span>📅&nbsp; 21 y 22 de noviembre</span><span>📍&nbsp; Club Hindú, Don Torcuato</span><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" rel="noopener">Cómo llegar →</a></div>
     </div>
     <div class="cd" id="countdownDisplay">
       <div class="cd-t"><b id="cd-days">--</b><span>días</span></div>
@@ -3027,21 +3047,34 @@ addEventListener('DOMContentLoaded',function(){
 
 <!-- MOBILE NAV – barra inferior -->
 <nav class="mobile-nav">
-  <div class="mobile-nav-inner">
-    <button class="nav-tab active" id="tab-fixture-mob" onclick="showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
-    <button class="nav-tab" id="tab-historial-mob" onclick="showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Resultados</span></button>
-    <button class="nav-tab" id="tab-miequipo-mob" onclick="showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
-    <button class="nav-tab" id="tab-canchas-mob" onclick="showTab('canchas')"><span class="tab-icon">🟢</span><span class="tab-label">Canchas</span></button>
-    <button class="nav-tab" id="tab-agrupaciones-mob" onclick="showTab('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
-    <button class="nav-tab" id="tab-cronograma-mob" onclick="showTab('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
-    <button class="nav-tab" id="tab-mapa-mob" onclick="showTab('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
-    <button class="nav-tab" id="tab-gastro-mob" onclick="showTab('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastro</span></button>
-    <button class="nav-tab" id="tab-sponsors-mob" onclick="showTab('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
-    <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras</span></a>
-    <button class="nav-tab" id="tab-fotos-mob" onclick="showTab('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
-    <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram</span></a>
+  <div class="mobile-nav-inner mn5">
+    <button class="nav-tab active" id="tab-fixture-mob" onclick="masCerrar();showTab('fixture')"><span class="tab-icon">🏉</span><span class="tab-label">Fixture</span></button>
+    <button class="nav-tab" id="tab-historial-mob" onclick="masCerrar();showTab('historial')"><span class="tab-icon">✅</span><span class="tab-label">Resultados</span></button>
+    <button class="nav-tab" id="tab-miequipo-mob" onclick="masCerrar();showTab('miequipo')"><span class="tab-icon">⭐</span><span class="tab-label">Mi Equipo</span></button>
+    <button class="nav-tab" id="tab-canchas-mob" onclick="masCerrar();showTab('canchas')"><span class="tab-icon">🏟</span><span class="tab-label">Canchas</span></button>
+    <button class="nav-tab" id="tab-mas-mob" onclick="masToggle()"><span class="tab-icon">☰</span><span class="tab-label">Más</span></button>
   </div>
 </nav>
+<div id="mas-velo" onclick="masCerrar()"></div>
+<div id="mas-hoja">
+  <div class="mas-asa"></div>
+  <div class="mas-grid">
+    <button class="nav-tab" id="tab-agrupaciones-mob" onclick="masIr('agrupaciones')"><span class="tab-icon">🛡</span><span class="tab-label">Agrupaciones</span></button>
+    <button class="nav-tab" id="tab-cronograma-mob" onclick="masIr('cronograma')"><span class="tab-icon">📅</span><span class="tab-label">Cronograma</span></button>
+    <button class="nav-tab" id="tab-mapa-mob" onclick="masIr('mapa')"><span class="tab-icon">📍</span><span class="tab-label">Mapa</span></button>
+    <button class="nav-tab" id="tab-gastro-mob" onclick="masIr('gastro')"><span class="tab-icon">🍖</span><span class="tab-label">Gastronomía</span></button>
+    <button class="nav-tab" id="tab-sponsors-mob" onclick="masIr('sponsors')"><span class="tab-icon">🤝</span><span class="tab-label">Sponsors</span></button>
+    <button class="nav-tab" id="tab-fotos-mob" onclick="masIr('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
+    <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras ↗</span></a>
+    <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram ↗</span></a>
+  </div>
+</div>
+<script>
+var MAS_TABS=['agrupaciones','cronograma','mapa','gastro','sponsors','fotos'];
+function masToggle(){var h=document.getElementById('mas-hoja');if(h.classList.contains('open'))masCerrar();else{h.classList.add('open');document.getElementById('mas-velo').classList.add('open');}}
+function masCerrar(){var h=document.getElementById('mas-hoja');if(h)h.classList.remove('open');var v=document.getElementById('mas-velo');if(v)v.classList.remove('open');}
+function masIr(t){masCerrar();showTab(t);}
+</script>
 
 <div class="toast" id="toast"></div>
 <script>
