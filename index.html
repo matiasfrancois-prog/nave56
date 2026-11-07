@@ -136,6 +136,27 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .stat-value{font-size:26px;font-weight:600;color:var(--fg);font-variant-numeric:tabular-nums;}
 .stat-value.live{color:var(--green);}
 .filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;}
+.fx-filtros{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--border);border-radius:999px;padding:3px;gap:2px;width:max-content;max-width:100%;}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.seg button.on{background:var(--accent);color:#fff;}
+.seg-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.chip{border:1px solid var(--border);background:transparent;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;}
+.chip.on{color:#fff;border-color:transparent;}
+.chip.c-live.on{background:var(--green);}
+.chip.c-a.on{background:#b8963e;}
+.chip.c-b.on{background:#4b8ef0;}
+.chip.c-all.on{background:var(--fg,#222);}
+.cn-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;}
+.cn-fila{display:grid;grid-template-columns:48px 1fr auto;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;font-size:13px;border-bottom:1px solid var(--border);}
+.cn-fila:last-child{border-bottom:0;}
+.cn-fila .h{font-weight:700;font-variant-numeric:tabular-nums;color:var(--accent-hi);}
+.cn-fila .eq{font-weight:600;line-height:1.3;}
+.cn-fila .eq small{display:block;font-weight:500;color:var(--muted);font-size:11px;}
+.cn-fila.live{background:var(--live-glow);border:1px solid var(--green);}
+.cn-fila.fin{opacity:.6;}
+.cn-fila.prox1{background:var(--accent-lo);}
+.cat-pill{font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;color:#fff;}
 .filter-btn{background:transparent;border:1px solid var(--border);border-radius:20px;padding:7px 18px;font-size:14px;color:var(--muted);cursor:pointer;transition:.15s;font-weight:500;letter-spacing:.02em;}
 .filter-btn:hover{border-color:var(--accent);color:var(--accent-hi);}
 .filter-btn.active{background:var(--accent);border-color:var(--accent);color:#000;font-weight:600;}
@@ -162,7 +183,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .cancha-badge{font-size:11px;color:var(--accent);font-weight:600;}
 .empty-state{text-align:center;padding:64px 20px;color:var(--muted);}
 .empty-state .empty-icon{font-size:36px;margin-bottom:14px;opacity:.5;}
-.canchas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+.canchas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
 .cancha-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
 .cancha-card.live{border-color:var(--green);}
 .cancha-num{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--accent-hi);letter-spacing:.04em;}
@@ -748,25 +769,24 @@ function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
 
 function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._toastT);window._toastT=setTimeout(function(){t.classList.remove('show');},msg.indexOf('❌')===0?6000:2500);}
 
+var fxDia='todos',fxTipo='todos';
+function marcarOn(cont,btn){var bs=document.querySelectorAll('#'+cont+' button');for(var i=0;i<bs.length;i++)bs[i].classList.remove('on');if(btn)btn.classList.add('on');}
+function setFxDia(d,btn){fxDia=d;marcarOn('fx-dia',btn);renderPartidos();}
+function setFxTipo(t,btn){fxTipo=t;marcarOn('fx-tipo',btn);renderPartidos();}
+// compatibilidad: llamadas viejas (ej. tarjeta En Vivo)
 function setFilter(f,btn){
-  currentFilter=f;
-  var btns=document.querySelectorAll('.filter-btn');
-  for(var i=0;i<btns.length;i++)btns[i].classList.remove('active');
-  if(btn)btn.classList.add('active');
+  if(f==='dia1'||f==='dia2'){fxDia=f.slice(3);marcarOn('fx-dia',document.querySelectorAll('#fx-dia button')[fxDia==='1'?1:2]);}
+  else{fxTipo=(f==='live'||f==='catA'||f==='catB')?f:'todos';var m={todos:0,live:1,catA:2,catB:3};marcarOn('fx-tipo',document.querySelectorAll('#fx-tipo button')[m[fxTipo]||0]);}
   renderPartidos();
 }
 
 function renderPartidos(){
   var list=document.getElementById('partidos-list');
   var filtered=state.partidos.filter(function(p){
-    if(currentFilter==='todos')return true;
-    if(currentFilter==='dia1')return p.dia==1;
-    if(currentFilter==='dia2')return p.dia==2;
-    if(currentFilter==='live')return p.estado==='live';
-    if(currentFilter==='catA')return p.cat==='A';
-    if(currentFilter==='catB')return p.cat==='B';
-    if(currentFilter==='sinFin')return p.estado!=='finalizado';
-    if(currentFilter.startsWith('c'))return String(p.cancha)===currentFilter.slice(1);
+    if(fxDia!=='todos'&&String(p.dia)!==fxDia)return false;
+    if(fxTipo==='live')return p.estado==='live';
+    if(fxTipo==='catA')return p.cat==='A';
+    if(fxTipo==='catB')return p.cat==='B';
     return true;
   });
   // Contar agrupaciones únicas (ALACRANES A + B + C = 1 club)
@@ -782,10 +802,9 @@ function renderPartidos(){
   document.getElementById('stat-equipos').textContent=totalEq;
   document.getElementById('stat-live').textContent=state.partidos.filter(function(p){return p.estado==='live';}).length;
   if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos para este filtro</p></div>';return;}
-  filtered=filtered.filter(function(p){return p.cat!=='C';});
-  filtered.sort(function(a,b){if(a.dia!==b.dia)return a.dia-b.dia;return a.hora>b.hora?1:-1;});
-  var catColors={'A':'#b8963e','B':'#4b8ef0'};
-  var catLabels={'A':'A · Competitivo','B':'B · Recreativo'};
+  filtered.sort(ordenPartidos);
+  var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
+  var catLabels={'A':'A · Competitivo','B':'B · Recreativo','C':'⭐ Súper · Partido especial'};
   var html='';
   filtered.forEach(function(p){
     var bc=p.estado==='live'?'badge-live':p.estado==='finalizado'?'badge-fin':'badge-prox';
@@ -863,95 +882,45 @@ function verCanchaEnMapa(num,evt){
     setTimeout(function(){canchaHighlight=null;renderMapa();},2500);
   },150);
 }
+function ordenPartidos(a,b){
+  if(String(a.dia)!==String(b.dia))return Number(a.dia)-Number(b.dia);
+  if((a.hora||'')!==(b.hora||''))return (a.hora||'')>(b.hora||'')?1:-1;
+  return Number(a.cancha)-Number(b.cancha);
+}
+var canchaDia=null;
+function setCanchaDia(d,btn){canchaDia=d;marcarOn('cn-dia',btn);renderCanchas();}
 function renderCanchas(){
-  var grid=document.getElementById('canchas-grid');var html='';
-  var catColors={'A':'#b8963e','B':'#4b8ef0'};
+  var grid=document.getElementById('canchas-grid');if(!grid)return;
+  if(!canchaDia){
+    var hoy=new Date();canchaDia=(hoy.getFullYear()===2026&&hoy.getMonth()===10&&hoy.getDate()===22)?'2':'1';
+    var bs=document.querySelectorAll('#cn-dia button');for(var k=0;k<bs.length;k++)bs[k].classList.toggle('on',String(k+1)===canchaDia);
+  }
+  var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
+  var html='';
   for(var c=1;c<=7;c++){
     var cs=String(c);
-    var todos=state.partidos.filter(function(p){return String(p.cancha)===cs;});
-    var live=todos.filter(function(p){return p.estado==='live';});
-    var fin=todos.filter(function(p){return p.estado==='finalizado';});
-    var prox=todos.filter(function(p){return p.estado==='proximo';});
+    var lista=state.partidos.filter(function(p){return String(p.cancha)===cs&&String(p.dia)===canchaDia;}).sort(ordenPartidos);
+    var hayLive=lista.some(function(p){return p.estado==='live';});
+    var idxProx=-1;for(var j=0;j<lista.length;j++){if(lista[j].estado==='proximo'){idxProx=j;break;}}
     var sp=sponsorCanchas[cs];
-    var isExp=canchaExpanded[cs]||false;
-    var totalPartidos=todos.length;
-    html+='<div class="cancha-card '+(live.length?'live':'')+'" style="cursor:pointer;" onclick="toggleCancha(\''+cs+'\')">';
-    // Header
-    html+='<div style="display:flex;align-items:center;justify-content:space-between;">';
-    html+='<div>';
+    html+='<div class="cancha-card'+(hayLive?' live':'')+'">';
+    html+='<div class="cn-head"><div>';
     if(sp)html+='<div class="cancha-sponsor-badge">🤝 '+sp+'</div>';
-    html+='<div class="cancha-num">Cancha '+c+(c===1?' · Mog Supply':'')+'</div>';
+    html+='<div class="cancha-num">Cancha '+c+'</div></div>';
+    html+='<button onclick="verCanchaEnMapa('+c+',event)" style="background:var(--accent-lo);border:1px solid var(--accent);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--accent-hi);cursor:pointer;white-space:nowrap;">📍 Ver en mapa</button>';
     html+='</div>';
-    html+='<div style="display:flex;align-items:center;gap:8px;">';
-    html+='<div style="font-size:12px;color:var(--muted);">'+totalPartidos+' partidos</div>';
-    html+='<button onclick="verCanchaEnMapa('+c+',event)" style="background:var(--accent-lo);border:1px solid var(--accent);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:600;color:var(--accent-hi);cursor:pointer;white-space:nowrap;">📍 Ver</button>';
-    html+='<div style="font-size:18px;color:var(--muted);transition:transform .2s;'+(isExp?'transform:rotate(180deg)':'')+'">⌄</div>';
-    html+='</div></div>';
-    // Estado actual
-    if(live.length){
-      html+='<div style="margin-top:10px;padding:10px 12px;background:var(--live-glow);border-radius:8px;border:1px solid var(--green);">';
-      html+='<div style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span><strong style="font-size:13px;color:var(--green);">EN VIVO</strong>';
-      if(live[0].cat)html+='<span style="font-size:11px;font-weight:700;color:'+( catColors[live[0].cat]||'var(--muted)')+';">'+live[0].cat+'</span>';
-      html+='</div>';
-      html+='<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">';
-      html+='<div style="font-weight:600;font-size:13px;">'+live[0].local+'</div>';
-      html+='<div style="font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;">'+(live[0].score_local||0)+' – '+(live[0].score_visit||0)+'</div>';
-      html+='<div style="font-weight:600;font-size:13px;text-align:right;">'+live[0].visitante+'</div>';
-      html+='</div></div>';
-    } else if(prox.length){
-      html+='<div style="margin-top:8px;font-size:13px;color:var(--muted);">Próx: <strong style="color:var(--fg);">'+prox[0].local+' vs '+prox[0].visitante+'</strong> <span style="color:var(--accent);">'+prox[0].hora+'</span></div>';
-    } else if(fin.length===totalPartidos&&totalPartidos>0){
-      html+='<div style="margin-top:8px;font-size:12px;color:var(--green);">✓ Jornada finalizada</div>';
-    } else {
-      html+='<div style="margin-top:8px;font-size:12px;color:var(--muted);">Sin partidos asignados</div>';
-    }
-    // Panel expandido
-    if(isExp&&totalPartidos>0){
-      html+='<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:flex;flex-direction:column;gap:6px;" onclick="event.stopPropagation()">';
-      // Finalizados
-      if(fin.length){
-        html+='<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-bottom:2px;">Jugados</div>';
-        fin.forEach(function(p){
-          var cc=catColors[p.cat]||'var(--muted)';
-          html+='<div style="background:var(--bg);border-radius:7px;padding:8px 10px;border:1px solid var(--border);opacity:.75;">';
-          html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-          html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
-          html+='<div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 8px;">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-          html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
-          html+='</div>';
-          html+='<div style="font-size:10px;margin-top:3px;color:var(--muted);">Día '+p.dia+' · '+(p.hora||'')+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
-          html+='</div>';
-        });
-      }
-      // En vivo
-      live.forEach(function(p){
-        var cc=catColors[p.cat]||'var(--muted)';
-        html+='<div style="background:var(--live-glow);border-radius:7px;padding:8px 10px;border:1px solid var(--green);">';
-        html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-        html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
-        html+='<div style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;padding:0 8px;">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-        html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
-        html+='</div>';
-        html+='<div style="font-size:10px;margin-top:3px;color:var(--green);"><span class="live-dot" style="width:5px;height:5px;"></span> EN VIVO · '+(p.hora||'')+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
-        html+='</div>';
-      });
-      // Próximos
-      if(prox.length){
-        html+='<div style="font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin:4px 0 2px;">Próximos</div>';
-        prox.forEach(function(p){
-          var cc=catColors[p.cat]||'var(--muted)';
-          html+='<div style="background:var(--bg);border-radius:7px;padding:8px 10px;border:1px solid var(--border);">';
-          html+='<div style="display:flex;justify-content:space-between;align-items:center;">';
-          html+='<div style="flex:1;font-size:12px;font-weight:600;">'+p.local+'</div>';
-          html+='<div style="font-size:12px;color:var(--accent);font-weight:600;padding:0 8px;">'+(p.hora||'--')+'</div>';
-          html+='<div style="flex:1;font-size:12px;font-weight:600;text-align:right;">'+p.visitante+'</div>';
-          html+='</div>';
-          html+='<div style="font-size:10px;margin-top:3px;color:var(--muted);">Día '+p.dia+' <span style="color:'+cc+';font-weight:700;">'+(p.cat||'')+'</span></div>';
-          html+='</div>';
-        });
-      }
-      html+='</div>';
-    }
+    if(!lista.length){html+='<div style="font-size:13px;color:var(--muted);padding:6px 0;">Sin partidos este día</div></div>';continue;}
+    lista.forEach(function(p,j){
+      var cls=p.estado==='live'?' live':p.estado==='finalizado'?' fin':(j===idxProx&&!hayLive?' prox1':'');
+      var cc=catColors[p.cat]||'var(--muted)';
+      var der;
+      if(p.estado==='live')der='<b style="color:var(--green);font-variant-numeric:tabular-nums;">'+(p.score_local||0)+'–'+(p.score_visit||0)+'</b>';
+      else if(p.estado==='finalizado')der='<b style="font-variant-numeric:tabular-nums;">'+(p.score_local||0)+'–'+(p.score_visit||0)+'</b>';
+      else der='<span class="cat-pill" style="background:'+cc+';">'+(p.cat==='C'?'SÚPER':(p.cat||''))+'</span>';
+      html+='<div class="cn-fila'+cls+'"><span class="h">'+(p.hora||'')+'</span>';
+      html+='<span class="eq">'+(p.local||'?')+'<small>vs '+(p.visitante||'?')+(p.estado==='live'?' · <b style="color:var(--green)">● EN VIVO</b>':'')+'</small></span>';
+      html+=der+'</div>';
+    });
     html+='</div>';
   }
   grid.innerHTML=html;
@@ -2454,21 +2423,18 @@ addEventListener('DOMContentLoaded',function(){
     <div class="stat-card" onclick="setFilter('live',document.querySelector('.live-btn'))" style="cursor:pointer;" title="Ver partidos en vivo"><div class="stat-label">⚡ En Vivo</div><div class="stat-value live" id="stat-live">0</div></div>
     <div class="stat-card"><div class="stat-label">👥 Personas</div><div class="stat-value" id="stat-personas" style="transition:color .3s;">—</div></div>
   </div>
-  <div class="filter-row">
-    <button class="filter-btn active" onclick="setFilter('todos',this)">Todos</button>
-    <button class="filter-btn" onclick="setFilter('dia1',this)">📅 Sáb 21</button>
-    <button class="filter-btn" onclick="setFilter('dia2',this)">📅 Dom 22</button>
-    <button class="filter-btn live-btn" onclick="setFilter('live',this)">🟢 En Vivo</button>
-    <button class="filter-btn" style="border-color:#b8963e;color:#b8963e;" onclick="setFilter('catA',this)">🏆 A · Competitivo</button>
-    <button class="filter-btn" style="border-color:#4b8ef0;color:#4b8ef0;" onclick="setFilter('catB',this)">🎉 B · Recreativo</button>
-    <button class="filter-btn" onclick="setFilter('c1',this)">C1</button>
-    <button class="filter-btn" onclick="setFilter('c2',this)">C2</button>
-    <button class="filter-btn" onclick="setFilter('c3',this)">C3</button>
-    <button class="filter-btn" onclick="setFilter('c4',this)">C4</button>
-    <button class="filter-btn" onclick="setFilter('c5',this)">C5</button>
-    <button class="filter-btn" onclick="setFilter('c6',this)">C6</button>
-    <button class="filter-btn" onclick="setFilter('c7',this)">C7</button>
-    <button class="filter-btn" onclick="setFilter('sinFin',this)">✅ Sin finalizar</button>
+  <div class="fx-filtros">
+    <div class="seg" id="fx-dia">
+      <button class="on" onclick="setFxDia('todos',this)">Todos</button>
+      <button onclick="setFxDia('1',this)">Sáb 21</button>
+      <button onclick="setFxDia('2',this)">Dom 22</button>
+    </div>
+    <div class="seg-row" id="fx-tipo">
+      <button class="chip c-all on" onclick="setFxTipo('todos',this)">Todos</button>
+      <button class="chip c-live live-btn" onclick="setFxTipo('live',this)">● En vivo</button>
+      <button class="chip c-a" onclick="setFxTipo('catA',this)">A · Competitivo</button>
+      <button class="chip c-b" onclick="setFxTipo('catB',this)">B · Recreativo</button>
+    </div>
   </div>
   <div class="partidos-list" id="partidos-list">
     <div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos cargados aún</p></div>
@@ -2481,7 +2447,11 @@ addEventListener('DOMContentLoaded',function(){
 </div>
 
 <div class="tab-panel" id="tab-canchas">
-  <div class="section-title">🟢 Estado de Canchas</div>
+  <div class="section-title">🏟 Partidos por cancha</div>
+  <div class="seg" id="cn-dia" style="margin-bottom:16px;">
+    <button class="on" onclick="setCanchaDia('1',this)">Sábado 21</button>
+    <button onclick="setCanchaDia('2',this)">Domingo 22</button>
+  </div>
   <div class="canchas-grid" id="canchas-grid"></div>
 </div>
 
