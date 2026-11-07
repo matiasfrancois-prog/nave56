@@ -3117,8 +3117,7 @@ function activarNotificaciones(){
   }
   if(!('Notification' in window)){showToast('⚠️ Este navegador no soporta notificaciones');return;}
   if(Notification.permission==='denied'){showToast('🔕 Las notificaciones están bloqueadas. Habilitalas en los ajustes del navegador para este sitio.');return;}
-  window.OneSignalDeferred=window.OneSignalDeferred||[];
-  OneSignalDeferred.push(function(OS){
+  var correr=function(OS){
     OS.Notifications.requestPermission().then(function(){
       if(!OS.Notifications.permission){showToast('ℹ️ Permiso no otorgado');return;}
       return OS.User.PushSubscription.optIn().then(function(){
@@ -3126,7 +3125,9 @@ function activarNotificaciones(){
         setTimeout(estadoNotif,1500);
       });
     }).catch(function(e){showToast('⚠️ No se pudo activar: '+(e&&e.message?e.message:e));});
-  });
+  };
+  if(window.OneSignal&&window.OneSignal.Notifications&&window.OneSignal.User){correr(window.OneSignal);}
+  else{showToast('Cargando, tocá de nuevo en 2 segundos...');window.OneSignalDeferred=window.OneSignalDeferred||[];OneSignalDeferred.push(function(){});}
 }
 function swPushSub(){
   if(!('serviceWorker' in navigator))return Promise.resolve(null);
@@ -3139,7 +3140,7 @@ function swPushSub(){
 function resuscribirNotif(cb){
   window.OneSignalDeferred=window.OneSignalDeferred||[];
   OneSignalDeferred.push(function(OS){
-    swPushSub().then(function(sub){return sub?sub.unsubscribe().catch(function(){}):null;})
+    Promise.resolve(OS.Notifications.permission?null:OS.Notifications.requestPermission())
     .then(function(){return OS.User.PushSubscription.optOut();})
     .then(function(){return new Promise(function(r){setTimeout(r,800);});})
     .then(function(){return OS.User.PushSubscription.optIn();})
@@ -3153,11 +3154,12 @@ function autoRepararNotif(OS){
   swPushSub().then(function(sub){
     var token='';try{token=OS.User.PushSubscription.token||'';}catch(e){}
     var mal=!sub||(token&&sub.endpoint!==token)||!OS.User.PushSubscription.optedIn;
-    if(mal&&!window._nave56Reparando){window._nave56Reparando=true;resuscribirNotif();}
+    if(mal){window._nave56Reactivar=true;notifHomeEstado(false);}
   });
 }
 function notifHomeClick(){
   if(esIOS()&&!esStandalone()){var x=document.getElementById('notif-home-ios');if(x)x.style.display=x.style.display==='none'?'block':'none';return;}
+  if(window._nave56Reactivar){showToast('Reactivando...');resuscribirNotif(function(ok,e){window._nave56Reactivar=!ok;showToast(ok?'✅ Notificaciones reactivadas':'⚠️ '+(e&&e.message?e.message:e));});return;}
   activarNotificaciones();
 }
 function notifHomeEstado(on){
@@ -3165,7 +3167,7 @@ function notifHomeEstado(on){
   if(on){c.style.display='none';return;}
   c.style.display='block';
   var ios=esIOS()&&!esStandalone();
-  var b=document.getElementById('notif-home-btn');if(b)b.textContent=ios?'Cómo hacerlo':'Activar';
+  var b=document.getElementById('notif-home-btn');if(b)b.textContent=ios?'Cómo hacerlo':(window._nave56Reactivar?'Reactivar':'Activar');
   var i=document.getElementById('notif-home-ios');if(i&&ios){i.style.display='block';c.style.borderRadius='14px';}
 }
 function estadoNotif(){
