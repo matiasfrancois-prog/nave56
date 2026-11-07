@@ -3116,22 +3116,108 @@ function activarNotificaciones(){
     }).catch(function(e){showToast('⚠️ No se pudo activar: '+(e&&e.message?e.message:e));});
   });
 }
+function swPushSub(){
+  if(!('serviceWorker' in navigator))return Promise.resolve(null);
+  return navigator.serviceWorker.getRegistration('/nave56/').then(function(reg){
+    if(!reg||!reg.pushManager)return null;
+    return reg.pushManager.getSubscription();
+  }).catch(function(){return null;});
+}
+// Re-suscribe desde cero: borra la suscripción nativa y la vuelve a crear en OneSignal
+function resuscribirNotif(cb){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){
+    swPushSub().then(function(sub){return sub?sub.unsubscribe().catch(function(){}):null;})
+    .then(function(){return OS.User.PushSubscription.optOut();})
+    .then(function(){return new Promise(function(r){setTimeout(r,800);});})
+    .then(function(){return OS.User.PushSubscription.optIn();})
+    .then(function(){setTimeout(function(){estadoNotif();if(cb)cb(true);},2000);})
+    .catch(function(e){if(cb)cb(false,e);});
+  });
+}
+// Autoreparación: OneSignal cree que está suscripto pero el teléfono no tiene suscripción real
+function autoRepararNotif(OS){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  swPushSub().then(function(sub){
+    var token='';try{token=OS.User.PushSubscription.token||'';}catch(e){}
+    var mal=!sub||(token&&sub.endpoint!==token)||!OS.User.PushSubscription.optedIn;
+    if(mal&&!window._nave56Reparando){window._nave56Reparando=true;resuscribirNotif();}
+  });
+}
 function estadoNotif(){
   var btn=document.getElementById('notif-toggle-btn');if(!btn)return;
   if(esIOS()&&!esStandalone()){btn.textContent='📲 Cómo activar';return;}
   window.OneSignalDeferred=window.OneSignalDeferred||[];
   OneSignalDeferred.push(function(OS){
-    var on=false;try{on=!!(OS.Notifications.permission&&OS.User.PushSubscription.optedIn);}catch(e){}
+    var on=false;try{on=!!(OS.Notifications.permission&&OS.User.PushSubscription.optedIn&&OS.User.PushSubscription.id);}catch(e){}
     if(on){
       btn.textContent='✅ Activas';
       btn.style.background='rgba(34,197,94,.15)';btn.style.borderColor='rgba(34,197,94,.4)';btn.style.color='#22c55e';
-      btn.onclick=function(){showToast('🔔 Ya tenés las notificaciones activas');};
+      btn.onclick=abrirDiagNotif;
     }
+  });
+}
+// ── Diagnóstico visible en el teléfono ──
+function abrirDiagNotif(){
+  var d=document.getElementById('diag-notif');
+  if(!d){
+    d=document.createElement('div');d.id='diag-notif';
+    d.style.cssText='position:fixed;left:10px;right:10px;bottom:80px;z-index:99999;background:#0a0e14;border:1px solid #c8a84b;border-radius:14px;padding:14px;color:#e6edf3;font:12px/1.5 Inter,Arial,sans-serif;box-shadow:0 8px 30px rgba(0,0,0,.6);max-height:70vh;overflow:auto;';
+    document.body.appendChild(d);
+  }
+  d.innerHTML='<b style="color:#c8a84b">🔔 Diagnóstico de notificaciones</b><div id="diag-body" style="margin:8px 0">Revisando...</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+    '<button onclick="diagPrueba()" style="flex:1;padding:10px;border:0;border-radius:10px;background:#c8a84b;color:#0a0e14;font-weight:800">📩 Enviarme una prueba</button>'+
+    '<button onclick="diagResuscribir()" style="flex:1;padding:10px;border:1px solid #c8a84b;border-radius:10px;background:transparent;color:#c8a84b;font-weight:800">🔄 Re-suscribir</button>'+
+    '<button onclick="var x=document.getElementById(\'diag-notif\');x.parentNode.removeChild(x)" style="padding:10px 14px;border:0;border-radius:10px;background:#30363d;color:#fff">✕</button></div>';
+  diagRefrescar();
+}
+function diagRefrescar(){
+  var el=document.getElementById('diag-body');if(!el)return;
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){
+    swPushSub().then(function(sub){
+      var ps=OS.User.PushSubscription,ok='✅',no='❌';
+      var token=ps.token||'';
+      var filas=[
+        ['App instalada (pantalla de inicio)',esStandalone()?ok:(esIOS()?no+' (obligatorio en iPhone)':'—')],
+        ['Permiso del sistema',('Notification' in window)?Notification.permission:'no soportado'],
+        ['Suscripción en el teléfono',sub?ok:no],
+        ['Suscripción en OneSignal',ps.optedIn&&ps.id?ok:no],
+        ['Coinciden',sub&&token&&sub.endpoint===token?ok:no],
+        ['ID',ps.id?String(ps.id).substring(0,8):'—']
+      ];
+      el.innerHTML=filas.map(function(f){return '<div style="display:flex;justify-content:space-between;border-bottom:1px solid #21262d;padding:3px 0"><span>'+f[0]+'</span><b>'+f[1]+'</b></div>';}).join('');
+    });
+  });
+}
+function diagResuscribir(){
+  var el=document.getElementById('diag-body');if(el)el.innerHTML='Re-suscribiendo...';
+  resuscribirNotif(function(ok,e){showToast(ok?'✅ Re-suscripto':'⚠️ '+(e&&e.message?e.message:e));diagRefrescar();});
+}
+function diagPrueba(){
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){
+    var id=OS.User.PushSubscription.id;
+    if(!id){showToast('❌ Sin suscripción: tocá Re-suscribir');return;}
+    var body={app_id:NAVE56_OS_APP,target_channel:'push',include_subscription_ids:[id],
+      headings:{en:'NAVE56 · Prueba',es:'NAVE56 · Prueba'},contents:{en:'✅ Si ves esto, las notificaciones funcionan en este teléfono',es:'✅ Si ves esto, las notificaciones funcionan en este teléfono'},url:NAVE56_URL};
+    var xhr=new XMLHttpRequest();
+    xhr.open('POST','https://api.onesignal.com/notifications?c=push',true);
+    xhr.setRequestHeader('Content-Type','application/json');
+    xhr.setRequestHeader('Authorization','Key '+NAVE56_OS_KEY);
+    xhr.onload=function(){var d={};try{d=JSON.parse(xhr.responseText);}catch(e){}
+      showToast(d.id?'📩 Enviada. Cerrá o minimizá la app y esperá unos segundos':'❌ '+osErrTxt(d,xhr.status));};
+    xhr.send(JSON.stringify(body));
   });
 }
 addEventListener('DOMContentLoaded',function(){
   setTimeout(estadoNotif,2500);
   window.OneSignalDeferred=window.OneSignalDeferred||[];
-  OneSignalDeferred.push(function(OS){try{OS.User.PushSubscription.addEventListener('change',estadoNotif);}catch(e){}});
+  OneSignalDeferred.push(function(OS){
+    try{OS.User.PushSubscription.addEventListener('change',estadoNotif);}catch(e){}
+    setTimeout(function(){autoRepararNotif(OS);},3000);
+    if(/[?&]diag/.test(location.search))setTimeout(abrirDiagNotif,1500);
+  });
 });
 </script>
