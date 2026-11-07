@@ -92,7 +92,7 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 @media(max-width:700px){
   .sidebar{display:none;}
   .mobile-nav{display:block;}
-  .main-content{padding:16px 14px 160px;}
+  .main-content{padding:16px 14px 160px;padding-top:calc(16px + env(safe-area-inset-top,0px));}
   .top-bar{display:none;}
   .section-title{font-size:20px;}
   .team-name{font-size:16px;}
@@ -2422,18 +2422,16 @@ addEventListener('DOMContentLoaded',function(){
 <main class="main-content">
 
 <div class="tab-panel active" id="tab-fixture">
-<div id="notif-home" style="display:none;margin:0 0 14px 0;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#c8a84b,#e8c870);color:#0a0e14;box-shadow:0 4px 16px rgba(0,0,0,.15);">
-  <div style="display:flex;align-items:center;gap:12px;">
-    <span style="font-size:28px;">🔔</span>
-    <div style="flex:1;"><div style="font-weight:800;font-size:15px;">Activá las notificaciones</div>
-    <div id="notif-home-sub" style="font-size:12px;opacity:.85;">Resultados, cambios de cancha y novedades en vivo</div></div>
-    <button id="notif-home-btn" onclick="notifHomeClick()" style="padding:10px 16px;border:0;border-radius:20px;background:#0a0e14;color:#c8a84b;font-weight:800;font-size:14px;white-space:nowrap;">Activar</button>
+<div id="notif-home" style="display:none;margin:0 0 12px 0;padding:8px 8px 8px 14px;border-radius:999px;background:rgba(200,168,75,.14);border:1px solid rgba(200,168,75,.45);">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:18px;">🔔</span>
+    <div style="flex:1;font-size:13px;font-weight:700;color:#7a5f1c;line-height:1.2;">Activá las notificaciones</div>
+    <button id="notif-home-btn" onclick="notifHomeClick()" style="padding:7px 14px;border:0;border-radius:999px;background:#c8a84b;color:#0a0e14;font-weight:800;font-size:13px;white-space:nowrap;">Activar</button>
   </div>
-  <div id="notif-home-ios" style="display:none;margin-top:10px;font-size:13px;line-height:1.55;background:rgba(10,14,20,.08);border-radius:10px;padding:10px 12px;">
-    <b>En iPhone, primero instalá la app:</b><br>
-    1. Abrí este link en <b>Safari</b> (si estás en WhatsApp: tocá ⋯ → Abrir en Safari)<br>
-    2. Tocá <b>Compartir ⬆️</b> → <b>"Agregar a inicio"</b> → Agregar<br>
-    3. Abrí <b>NAVE56</b> desde el ícono nuevo y tocá <b>Activar</b>
+  <div id="notif-home-ios" style="display:none;margin:8px 6px 4px 0;font-size:12.5px;line-height:1.55;color:#3b3220;">
+    1. Abrí el link en <b>Safari</b> (desde WhatsApp: ⋯ → Abrir en Safari)<br>
+    2. <b>Compartir ⬆️</b> → <b>"Agregar a inicio"</b><br>
+    3. Abrí <b>NAVE56</b> desde el ícono y tocá <b>Activar</b>
   </div>
 </div>
   <div class="countdown-banner" id="countdownBanner">
@@ -3168,7 +3166,7 @@ function notifHomeEstado(on){
   c.style.display='block';
   var ios=esIOS()&&!esStandalone();
   var b=document.getElementById('notif-home-btn');if(b)b.textContent=ios?'Cómo hacerlo':'Activar';
-  var i=document.getElementById('notif-home-ios');if(i&&ios)i.style.display='block';
+  var i=document.getElementById('notif-home-ios');if(i&&ios){i.style.display='block';c.style.borderRadius='14px';}
 }
 function estadoNotif(){
   var btn=document.getElementById('notif-toggle-btn');if(!btn)return;
