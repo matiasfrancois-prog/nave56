@@ -732,34 +732,16 @@ function enviarNotificacion(){
   if(!mensaje){showToast('Ingresá un mensaje');return;}
   statusEl.textContent='Enviando...';
   statusEl.style.color='var(--muted)';
-  var appId='57793616-4667-47c4-946d-5224d6f156b7';
-  var apiKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
-  var body={app_id:appId,headings:{en:titulo,es:titulo},contents:{en:mensaje,es:mensaje},included_segments:['All']};
-  if(url){body.url=url;}
-  fetch('https://api.onesignal.com/notifications',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','Authorization':'Key '+apiKey},
-    body:JSON.stringify(body)
-  }).then(function(r){
-    var status=r.status;
-    return r.json().then(function(data){return {status:status,data:data};});
-  }).then(function(res){
-    var data=res.data;
-    if(data.id){
-      statusEl.textContent='✅ Notificación enviada (ID: '+data.id.substring(0,8)+'...)';
+  osEnviar(titulo,mensaje,url,function(ok,d,st){
+    if(ok){
+      statusEl.textContent='✅ Enviada a '+(d.recipients||0)+' suscriptores';
       statusEl.style.color='#4caf50';
       document.getElementById('notif-titulo').value='';
       document.getElementById('notif-mensaje').value='';
     } else {
-      var errMsg=data.errors?JSON.stringify(data.errors):'HTTP '+res.status+' - '+JSON.stringify(data);
-      statusEl.textContent='❌ Error: '+errMsg;
+      statusEl.textContent='❌ Error: '+osErrTxt(d,st);
       statusEl.style.color='#e55';
-      console.error('[OneSignal] Error response:', res.status, data);
     }
-  }).catch(function(err){
-    statusEl.textContent='❌ Error de red: '+err.message;
-    statusEl.style.color='#e55';
-    console.error('[OneSignal] Fetch error:', err);
   });
 }
 function adminLoginKey(e){if(e.key==='Enter')submitAdminLogin();}
@@ -1429,22 +1411,7 @@ function guardarYNotificar(i){
   var sv=p.score_visit||0;
   var titulo='Resultado: '+p.local+' vs '+p.visitante;
   var mensaje=p.local+' '+sl+' - '+sv+' '+p.visitante;
-  var appId='57793616-4667-47c4-946d-5224d6f156b7';
-  var apiKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
-  var body={app_id:appId,headings:{en:titulo,es:titulo},contents:{en:mensaje,es:mensaje},included_segments:['All']};
-  var xhrN=new XMLHttpRequest();
-  xhrN.open('POST','https://api.onesignal.com/notifications',true);
-  xhrN.setRequestHeader('Content-Type','application/json');
-  xhrN.setRequestHeader('Authorization','Key '+apiKey);
-  xhrN.onload=function(){
-    try{
-      var d=JSON.parse(xhrN.responseText);
-      if(d.id){showToast('📣 Notificación enviada a todos');}
-      else{showToast('⚠️ Guardado OK. Error notif: '+(d.errors?JSON.stringify(d.errors):''+xhrN.status));}
-    }catch(e){showToast('⚠️ Guardado OK. Notif: respuesta inválida');}
-  };
-  xhrN.onerror=function(){showToast('⚠️ Guardado OK. Error de red en notificación');};
-  xhrN.send(JSON.stringify(body));
+  // La notificación la dispara saveSupabase al confirmar el guardado (una sola vez por estado)
 }
 function updateScore(i,side,val){if(side==='local')state.partidos[i].score_local=parseInt(val)||0;else state.partidos[i].score_visit=parseInt(val)||0;saveState();saveSupabase(state.partidos[i]);renderPartidos();renderMapa();}
 function addPoints(i,side,pts){
@@ -2225,7 +2192,8 @@ function saveSupabase(partido){
       if(xhr.status===200||xhr.status===204){
         showToast('✅ Guardado en BD ('+partido.estado+')');
         // Disparar notificación push si el estado es relevante
-        if(partido.estado==='live'||partido.estado==='finalizado'){
+        if((partido.estado==='live'||partido.estado==='finalizado')&&notifEstadoPrevio(partido)!==partido.estado){
+          notifMarcar(partido);
           enviarNotifPartido(partido);
         }
       } else {
@@ -2237,6 +2205,9 @@ function saveSupabase(partido){
   }catch(e){showToast('⚠️ Error interno saveSupabase: '+e.message);}
 }
 
+function notifMapa(){try{return JSON.parse(localStorage.getItem('nave56_notif_env')||'{}');}catch(e){return {};}}
+function notifEstadoPrevio(p){return notifMapa()[String(p.id)]||'';}
+function notifMarcar(p){var m=notifMapa();m[String(p.id)]=p.estado;try{localStorage.setItem('nave56_notif_env',JSON.stringify(m));}catch(e){}}
 function enviarNotifPartido(partido){
   try{
     var titulo,msg;
@@ -2245,65 +2216,15 @@ function enviarNotifPartido(partido){
       msg=partido.local+' vs '+partido.visitante+' · Cancha '+partido.cancha;
     } else if(partido.estado==='finalizado'){
       titulo='🏉 Resultado NAVE56';
-      msg=partido.local+' '+( partido.score_local||0)+' — '+(partido.score_visit||0)+' '+partido.visitante;
-    } else {
-      return;
-    }
-    var bodyObj={
-      app_id:'57793616-4667-47c4-946d-5224d6f156b7',
-      headings:{en:titulo,es:titulo},
-      contents:{en:msg,es:msg},
-      included_segments:['All'],
-      url:'https://matiasfrancois-prog.github.io/nave56/'
-    };
-    var xhr2=new XMLHttpRequest();
-    xhr2.open('POST','https://api.onesignal.com/notifications',true);
-    xhr2.setRequestHeader('Content-Type','application/json');
-    var osKey='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
-    xhr2.setRequestHeader('Authorization','Key '+osKey);
-    xhr2.onload=function(){
-      if(xhr2.status===200){
-        try{
-          var resp=JSON.parse(xhr2.responseText);
-          if(resp.id)showToast('🔔 Notificación enviada ('+( resp.recipients||0)+' subs)');
-        }catch(e){}
-      }
-    };
-    xhr2.send(JSON.stringify(bodyObj));
-  }catch(e){}
-}
-
-function activarNotificaciones(){
-  if(typeof OneSignal==='undefined'&&(!window.OneSignalDeferred)){
-    showToast('⚠️ Notificaciones no disponibles en este navegador');return;
-  }
-  try{
-    window.OneSignalDeferred=window.OneSignalDeferred||[];
-    window.OneSignalDeferred.push(function(OS){
-      OS.Slidedown.promptPush().then(function(){
-        OS.User.PushSubscription.optIn().then(function(){
-          showToast('✅ Notificaciones activadas');
-          actualizarBtnNotif();
-        }).catch(function(){
-          showToast('ℹ️ Permiso no otorgado');
-        });
-      });
-    });
-  }catch(e){showToast('⚠️ Error al activar notificaciones: '+e.message);}
-}
-
-function actualizarBtnNotif(){
-  var btn=document.getElementById('btn-notif');
-  if(!btn)return;
-  try{
-    window.OneSignalDeferred=window.OneSignalDeferred||[];
-    window.OneSignalDeferred.push(function(OS){
-      var suscripto=OS.User.PushSubscription.optedIn;
-      btn.title=suscripto?'Notificaciones activas ✅':'Activar notificaciones';
-      btn.style.opacity=suscripto?'1':'0.6';
+      msg=partido.local+' '+(partido.score_local||0)+' — '+(partido.score_visit||0)+' '+partido.visitante;
+    } else { return; }
+    osEnviar(titulo,msg,'',function(ok,d,st){
+      if(ok)showToast('🔔 Notificación enviada ('+(d.recipients||0)+' suscriptores)');
+      else showToast('⚠️ Guardado OK, pero la notificación falló: '+osErrTxt(d,st));
     });
   }catch(e){}
 }
+
 // ─────────────────────────────────────────────────────────────────────────
 
 
@@ -2356,7 +2277,6 @@ function fetchSupabase(){
         // Debug: mostrar estados recibidos
         var finalizados=data.filter(function(r){return r.estado==='finalizado';}).length;
         var lives=data.filter(function(r){return r.estado==='live';}).length;
-        if(finalizados||lives)showToast('📡 BD: '+finalizados+' final / '+lives+' live');
         procesarPartidosSupabase(data);
       }catch(e){}
     }
@@ -2418,14 +2338,9 @@ function initWatermark(){
   }
 }
 
-// SW CLEANUP — eliminar todo SW viejo y limpiar cache
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(regs) {
-    regs.forEach(function(r){ r.unregister(); });
-  });
-  caches.keys().then(function(keys){
-    keys.forEach(function(k){ caches.delete(k); });
-  });
+// Limpieza de caches viejos. NO desregistrar el SW: eso borra la suscripcion push.
+if (window.caches) {
+  caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); }).catch(function(){});
 }
 
 addEventListener('DOMContentLoaded',function(){
@@ -3144,80 +3059,79 @@ var EQUIPO_LOGOS={
 };
 </script>
 <script>
-// ── Service Worker + Auto-Update ────────────────────────────────────────────
+// ── Service Worker: lo registra SOLO OneSignal (sin banner de actualización) ──
 (function(){
+  try{var old=document.getElementById('sw-update-banner');if(old&&old.parentNode)old.parentNode.removeChild(old);}catch(e){}
+  try{sessionStorage.removeItem('nave56_banner_shown');}catch(e){}
   if (!('serviceWorker' in navigator)) return;
-
-  // Banner de actualización
-  function mostrarBannerUpdate() {
-    if(document.getElementById('sw-update-banner'))return;
-    var banner = document.createElement('div');
-    banner.id = 'sw-update-banner';
-    banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;padding:14px 20px;background:linear-gradient(135deg,#c8a84b,#e8c870);color:#0a0e14;font-family:Inter,sans-serif;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.4);';
-    banner.innerHTML = '<span>🔄 Nueva versión disponible</span><button onclick="try{sessionStorage.removeItem(&apos;nave56_banner_shown&apos;);}catch(e){}this.parentNode.remove();window.location.reload()" style="padding:8px 18px;background:#0a0e14;color:#c8a84b;border:none;border-radius:20px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">Actualizar ahora</button>';
-    document.body.appendChild(banner);
-  }
-
-  navigator.serviceWorker.register('/nave56/sw.js').then(function(reg) {
-    // Detectar cuando hay una nueva versión instalándose
-    reg.addEventListener('updatefound', function() {
-      var newWorker = reg.installing;
-      if (!newWorker) return;
-      newWorker.addEventListener('statechange', function() {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // Solo mostrar banner si no lo vimos ya en esta sesion
-          var shown=false;try{shown=!!sessionStorage.getItem('nave56_banner_shown');}catch(e){}
-          if(!shown){try{sessionStorage.setItem('nave56_banner_shown','1');}catch(e){}mostrarBannerUpdate();}
-        }
-      });
-    });
-
-    // Chequear actualización cada vez que la app vuelve al frente (iOS/Android)
-    document.addEventListener('visibilitychange', function() {
-      if (document.visibilityState === 'visible') {
-        reg.update().catch(function(){});
-      }
-    });
-
-  }).catch(function(err) {
-    console.log('SW no pudo registrarse:', err);
-  });
-
-  // Cuando el SW toma control, recargar la página (primera activación)
-  var refreshing = false;
-  navigator.serviceWorker.addEventListener('controllerchange', function() {
-    if (!refreshing) {
-      refreshing = true;
-      // Solo recargar automáticamente en la primera instalación,
-      // no en actualizaciones (el usuario elige con el banner)
-    }
+  // Al volver a la app, chequear SW nuevo en silencio (se activa solo, sin preguntar)
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState !== 'visible') return;
+    navigator.serviceWorker.getRegistration('/nave56/').then(function(reg){ if(reg) reg.update().catch(function(){}); }).catch(function(){});
   });
 })();
 
-// ── OneSignal: activar notificaciones ───────────────────────────────────────
-function activarNotificaciones() {
-  if (typeof OneSignalDeferred === 'undefined') {
-    showToast('Las notificaciones no están disponibles en este navegador');
+// ── OneSignal: envío y suscripción ─────────────────────────────────────────
+var NAVE56_OS_APP='57793616-4667-47c4-946d-5224d6f156b7';
+var NAVE56_OS_KEY='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
+var NAVE56_OS_SEGMENT='Total Subscriptions';
+var NAVE56_URL='https://matiasfrancois-prog.github.io/nave56/';
+function osEnviar(titulo,msg,url,cb){
+  var body={app_id:NAVE56_OS_APP,target_channel:'push',included_segments:[NAVE56_OS_SEGMENT],
+    headings:{en:titulo,es:titulo},contents:{en:msg,es:msg},url:url||NAVE56_URL};
+  var xhr=new XMLHttpRequest();
+  xhr.open('POST','https://api.onesignal.com/notifications?c=push',true);
+  xhr.setRequestHeader('Content-Type','application/json');
+  xhr.setRequestHeader('Authorization','Key '+NAVE56_OS_KEY);
+  xhr.onload=function(){
+    var d={};try{d=JSON.parse(xhr.responseText);}catch(e){}
+    var ok=(xhr.status===200&&!!d.id);
+    if(cb)cb(ok,d,xhr.status);
+  };
+  xhr.onerror=function(){if(cb)cb(false,{errors:['Error de red']},0);};
+  xhr.send(JSON.stringify(body));
+}
+function osErrTxt(d,st){
+  if(d&&d.errors)return (typeof d.errors==='string')?d.errors:JSON.stringify(d.errors);
+  if(d&&d.id&&!d.recipients)return 'sin suscriptores alcanzados';
+  return 'HTTP '+st;
+}
+function esIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);}
+function esStandalone(){return (window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;}
+function activarNotificaciones(){
+  if(esIOS()&&!esStandalone()){
+    showToast('📲 En iPhone primero instalá la app: Compartir ⬆️ → "Agregar a inicio". Abrila desde el ícono y tocá Activar.');
     return;
   }
-  OneSignalDeferred.push(function(OneSignal) {
-    OneSignal.Slidedown.promptPush();
+  if(!('Notification' in window)){showToast('⚠️ Este navegador no soporta notificaciones');return;}
+  if(Notification.permission==='denied'){showToast('🔕 Las notificaciones están bloqueadas. Habilitalas en los ajustes del navegador para este sitio.');return;}
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){
+    OS.Notifications.requestPermission().then(function(){
+      if(!OS.Notifications.permission){showToast('ℹ️ Permiso no otorgado');return;}
+      return OS.User.PushSubscription.optIn().then(function(){
+        showToast('✅ Notificaciones activadas');
+        setTimeout(estadoNotif,1500);
+      });
+    }).catch(function(e){showToast('⚠️ No se pudo activar: '+(e&&e.message?e.message:e));});
   });
 }
-function checkNotifStatus() {
-  if (typeof OneSignalDeferred === 'undefined') return;
-  OneSignalDeferred.push(function(OneSignal) {
-    OneSignal.Notifications.permission.then(function(perm) {
-      var btn = document.getElementById('notif-toggle-btn');
-      if (!btn) return;
-      if (perm) {
-        btn.textContent = '\uD83D\uDD14 Notif. activas';
-        btn.style.background = 'rgba(34,197,94,.15)';
-        btn.style.borderColor = 'rgba(34,197,94,.4)';
-        btn.style.color = '#22c55e';
-        btn.onclick = function(){showToast('\uD83D\uDD14 Ya tenés las notificaciones activas');};
-      }
-    });
+function estadoNotif(){
+  var btn=document.getElementById('notif-toggle-btn');if(!btn)return;
+  if(esIOS()&&!esStandalone()){btn.textContent='📲 Cómo activar';return;}
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){
+    var on=false;try{on=!!(OS.Notifications.permission&&OS.User.PushSubscription.optedIn);}catch(e){}
+    if(on){
+      btn.textContent='✅ Activas';
+      btn.style.background='rgba(34,197,94,.15)';btn.style.borderColor='rgba(34,197,94,.4)';btn.style.color='#22c55e';
+      btn.onclick=function(){showToast('🔔 Ya tenés las notificaciones activas');};
+    }
   });
 }
+addEventListener('DOMContentLoaded',function(){
+  setTimeout(estadoNotif,2500);
+  window.OneSignalDeferred=window.OneSignalDeferred||[];
+  OneSignalDeferred.push(function(OS){try{OS.User.PushSubscription.addEventListener('change',estadoNotif);}catch(e){}});
+});
 </script>

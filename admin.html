@@ -397,10 +397,9 @@ select option { background: var(--bg2); }
 <script>
 var SUPABASE_URL = 'https://wpguxgwscukvdmjayxlf.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndwZ3V4Z3dzY3VrdmRtamF5eGxmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4MjY2MDUsImV4cCI6MjA5NzQwMjYwNX0.QmLVHJhh1xEp-g8ei3zL7q_4eGFFGEGN3COW_ZqpAi4';
-var ONESIGNAL_API = 'https://onesignal.com/api/v1/notifications';
+var ONESIGNAL_API = 'https://api.onesignal.com/notifications?c=push';
 var ONESIGNAL_APP_ID = '57793616-4667-47c4-946d-5224d6f156b7';
-// IMPORTANTE: Reemplazar con tu OneSignal REST API Key
-var ONESIGNAL_REST_KEY = 'lju626huhurz4hrah2d5jk7sr';
+var ONESIGNAL_REST_KEY = 'os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
 
 var partidos = [];
 
@@ -635,7 +634,8 @@ function crearPartido() {
 function enviarNotifResultado(titulo, mensaje, cb) {
   var payload = JSON.stringify({
     app_id: ONESIGNAL_APP_ID,
-    included_segments: ['All'],
+    target_channel: 'push',
+    included_segments: ['Total Subscriptions'],
     headings: {es: titulo, en: titulo},
     contents: {es: mensaje, en: mensaje},
     url: 'https://matiasfrancois-prog.github.io/nave56/'
