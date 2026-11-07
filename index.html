@@ -394,6 +394,65 @@ textarea.chat-input{resize:vertical;min-height:80px;}
 .crono-cal-btn{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;background:rgba(200,168,75,.12);border:1px solid rgba(200,168,75,.35);border-radius:20px;color:#c8a84b;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.3px;transition:background .15s;}
 .crono-cal-btn:hover{background:rgba(200,168,75,.25);}
 
+
+/* ═══ Rediseño inicio NAVE56 ═══ */
+button:focus{outline:none;}button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.hero{background:#1a2738;color:#fff;border-radius:18px;padding:22px 26px;display:flex;align-items:center;justify-content:space-between;gap:24px;margin-bottom:18px;position:relative;overflow:hidden;}
+.hero:before{content:'';position:absolute;inset:0 0 auto 0;height:4px;background:#c8a84b;}
+.hero-kicker{font-size:11px;font-weight:700;letter-spacing:.18em;color:#c8a84b;text-transform:uppercase;}
+.hero-title{font-family:'Bebas Neue',sans-serif;font-size:40px;line-height:1;letter-spacing:.03em;margin:4px 0 6px;}
+.hero-meta{font-size:14px;color:rgba(255,255,255,.75);display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;}
+.hero-meta a{color:#c8a84b;font-weight:600;text-decoration:none;}
+.cd{display:flex;gap:8px;}
+.cd-t{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:12px;min-width:64px;padding:8px 6px 6px;text-align:center;}
+.cd-t b{display:block;font-family:'Bebas Neue',sans-serif;font-size:34px;line-height:1;font-weight:400;font-variant-numeric:tabular-nums;}
+.cd-t span{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.55);}
+.cd-done{font-family:'Bebas Neue',sans-serif;font-size:28px;color:#c8a84b;}
+.fx-bar{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.seg{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px;gap:2px;}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap;transition:.15s;}
+.seg button.on{background:#1a2738;color:#fff;}
+.seg-row{display:flex;gap:8px;align-items:center;overflow-x:auto;scrollbar-width:none;}
+.seg-row::-webkit-scrollbar{display:none;}
+.chip{border:1px solid var(--border);background:var(--surface);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;color:var(--fg);cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;transition:.15s;}
+.chip i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.chip.on{background:#1a2738;color:#fff;border-color:#1a2738;}
+.fx-grupo{margin-bottom:16px;}
+.fx-hora{display:flex;align-items:baseline;gap:10px;margin:0 4px 8px;}
+.fx-hora b{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--fg);letter-spacing:.03em;line-height:1;}
+.fx-hora span{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.fx-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.fx-row{display:grid;grid-template-columns:76px 1fr auto;gap:12px;align-items:center;padding:12px 16px;border-top:1px solid var(--border);}
+.fx-row:first-child{border-top:0;}
+.fx-cancha{font-size:12px;font-weight:700;color:var(--muted);line-height:1.2;}
+.fx-cancha b{display:block;font-family:'Bebas Neue',sans-serif;font-size:20px;font-weight:400;color:var(--accent);letter-spacing:.03em;}
+.fx-cancha small{font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;}
+.fx-eq{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;font-weight:700;font-size:15px;line-height:1.25;}
+.fx-eq .l{text-align:right;}
+.fx-eq .vs{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;}
+.fx-eq .sc{font-family:'Bebas Neue',sans-serif;font-size:24px;font-weight:400;font-variant-numeric:tabular-nums;min-width:56px;text-align:center;}
+.fx-sub{grid-column:2;font-size:12px;color:var(--muted);text-align:center;margin-top:-4px;}
+.fx-pill{font-size:11px;font-weight:800;letter-spacing:.04em;padding:4px 9px;border-radius:999px;color:#fff;white-space:nowrap;}
+.fx-row.live{background:rgba(34,197,94,.07);box-shadow:inset 3px 0 0 var(--green);}
+.fx-row.live .sc{color:var(--green);}
+.fx-row.fin{opacity:.7;}
+.fx-row.fav .l,.fx-row.fav .r{color:var(--accent);}
+.fx-copa{display:inline-block;font-size:10px;font-weight:800;color:#8c6d28;background:rgba(200,168,75,.18);border-radius:6px;padding:2px 6px;margin-top:3px;}
+.fx-vacio{text-align:center;padding:40px 20px;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:14px;}
+@media(max-width:700px){
+  .hero{flex-direction:column;align-items:stretch;padding:18px;gap:14px;}
+  .hero-title{font-size:32px;}
+  .cd{justify-content:space-between;}
+  .cd-t{flex:1;min-width:0;}
+  .cd-t b{font-size:28px;}
+  .fx-bar{flex-direction:column;align-items:stretch;}
+  .seg{width:100%;}.seg button{flex:1;padding:9px 6px;}
+  .fx-row{grid-template-columns:52px 1fr;gap:10px;padding:12px;}
+  .fx-row .fx-pill{grid-column:1;grid-row:2;justify-self:start;font-size:10px;padding:3px 7px;}
+  .fx-eq{grid-column:2;grid-row:1/3;font-size:14px;gap:6px;}
+  .fx-eq .sc{font-size:22px;min-width:44px;}
+  .fx-cancha b{font-size:18px;}
+}
 </style>
 <script>
 var SUPABASE_URL='https://wpguxgwscukvdmjayxlf.supabase.co';
@@ -773,11 +832,11 @@ function showToast(msg){var t=document.getElementById('toast');t.textContent=msg
 var fxDia='todos',fxTipo='todos';
 function marcarOn(cont,btn){var bs=document.querySelectorAll('#'+cont+' button');for(var i=0;i<bs.length;i++)bs[i].classList.remove('on');if(btn)btn.classList.add('on');}
 function setFxDia(d,btn){fxDia=d;marcarOn('fx-dia',btn);renderPartidos();}
-function setFxTipo(t,btn){fxTipo=t;marcarOn('fx-tipo',btn);renderPartidos();}
+function setFxTipo(t,btn){if(fxTipo===t){fxTipo='todos';marcarOn('fx-tipo',null);}else{fxTipo=t;marcarOn('fx-tipo',btn);}renderPartidos();}
 // compatibilidad: llamadas viejas (ej. tarjeta En Vivo)
 function setFilter(f,btn){
-  if(f==='dia1'||f==='dia2'){fxDia=f.slice(3);marcarOn('fx-dia',document.querySelectorAll('#fx-dia button')[fxDia==='1'?1:2]);}
-  else{fxTipo=(f==='live'||f==='catA'||f==='catB')?f:'todos';var m={todos:0,live:1,catA:2,catB:3};marcarOn('fx-tipo',document.querySelectorAll('#fx-tipo button')[m[fxTipo]||0]);}
+  if(f==='dia1'||f==='dia2'){fxDia=f.slice(3);marcarOn('fx-dia',document.querySelectorAll('#fx-dia button')[fxDia==='1'?0:1]);}
+  else{fxTipo=(f==='live'||f==='catA'||f==='catB')?f:'todos';var m={live:0,catA:1,catB:2};marcarOn('fx-tipo',fxTipo==='todos'?null:document.querySelectorAll('#fx-tipo button')[m[fxTipo]]);}
   renderPartidos();
 }
 
@@ -802,47 +861,35 @@ function renderPartidos(){
   var totalEq=Object.keys(agrupSet).length||listaEq.length;
   document.getElementById('stat-equipos').textContent=totalEq;
   document.getElementById('stat-live').textContent=state.partidos.filter(function(p){return p.estado==='live';}).length;
-  if(!filtered.length){list.innerHTML='<div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos para este filtro</p></div>';return;}
+  if(!filtered.length){list.innerHTML='<div class="fx-vacio">'+(fxTipo==='live'?'No hay partidos en vivo en este momento':'No hay partidos para este filtro')+'</div>';if(currentTab==='miequipo')renderMiEquipo();return;}
   filtered.sort(ordenPartidos);
   var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
-  var catLabels={'A':'A · Competitivo','B':'B · Recreativo','C':'⭐ Súper · Partido especial'};
-  var html='';
+  var catCorto={'A':'A · COMP','B':'B · RECR','C':'SÚPER'};
+  var copas={oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'};
+  var html='',grupo='';
   filtered.forEach(function(p){
-    var bc=p.estado==='live'?'badge-live':p.estado==='finalizado'?'badge-fin':'badge-prox';
-    var bt=p.estado==='live'?'● EN VIVO':p.estado==='finalizado'?'FIN':p.hora||'PRÓX';
-    var cn='Cancha '+p.cancha;if(sponsorCanchas[String(p.cancha)])cn+=' – '+sponsorCanchas[String(p.cancha)];
-    var catColor=catColors[p.cat]||'var(--muted)';
-    var catLabel=catLabels[p.cat]||p.cat||'';
-    var tipoLabel=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'?{oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'}[p.tipo]||'':'';
-    var diaLabel=p.dia==1?'Sáb 21':p.dia==2?'Dom 22':'';
-    var esFav=esFavPartido(p);
-    html+='<div class="partido-card '+(p.estado==='live'?'live':p.estado==='finalizado'?'finalizado':'')+(esFav?' fav':'')+'">';
-    html+='<div class="team-name team-left">'+(esFav?'<span class="fav-star">⭐</span>':'')+(p.local||'?')+'</div>';
-    html+='<div class="partido-center">';
-    html+='<img class="partido-logo" src="'+NAVE56_LOGO+'" alt="NAVE56">';
-    html+='<span style="font-size:10px;font-weight:700;color:'+catColor+';letter-spacing:.06em;text-transform:uppercase;">'+catLabel+'</span>'+(tipoLabel?'<span style="background:rgba(200,168,75,.2);color:#c8a84b;border-radius:4px;padding:2px 6px;font-size:10px;font-weight:700;margin-left:3px;">'+tipoLabel+'</span>':'');
-    html+='<span class="badge '+bc+'">'+bt+'</span>';
-    if(p.estado==='finalizado')html+='<div class="score-fin">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-    else if(p.estado==='live')html+='<div class="partido-score">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</div>';
-    html+='<div class="partido-meta"><span class="cancha-badge">'+cn+'</span>';
-    if(diaLabel)html+=' <span style="font-size:11px;color:var(--muted);">'+diaLabel+'</span>';
-    html+='</div>';
-    var touchInfo='';
-    if(p.touch1)touchInfo+=(touchInfo?' · ':'')+p.touch1;
-    if(p.touch2)touchInfo+=(touchInfo?' · ':'')+p.touch2;
-    html+='<div class="partido-referee">🏳 Referee: '+(p.referee||'<span style="opacity:.5">—</span>')+(touchInfo?' &nbsp;·&nbsp; Touch: '+touchInfo:'')+'</div>';
-    // Tarjetas en vivo
-    if(p.estado==='live'&&p.tarjetas&&p.tarjetas.length){
-      html+='<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;justify-content:center;">';
-      p.tarjetas.forEach(function(t){
-        var emoji=t.tipo==='roja'?'🔴':'🟡';
-        html+='<span style="font-size:11px;background:rgba(0,0,0,.06);border-radius:4px;padding:2px 6px;">'+emoji+' '+t.equipo+'</span>';
-      });
-      html+='</div>';
+    var g=p.dia+'|'+p.hora;
+    if(g!==grupo){
+      if(grupo)html+='</div></div>';
+      grupo=g;
+      html+='<div class="fx-grupo"><div class="fx-hora"><b>'+(p.hora||'--:--')+'</b><span>'+(String(p.dia)==='1'?'Sábado 21':'Domingo 22')+'</span></div><div class="fx-card">';
     }
+    var esFav=esFavPartido(p);
+    var cls=(p.estado==='live'?' live':p.estado==='finalizado'?' fin':'')+(esFav?' fav':'');
+    var sp=sponsorCanchas[String(p.cancha)];
+    var mid=(p.estado==='live'||p.estado==='finalizado')?'<span class="sc">'+(p.score_local||0)+' – '+(p.score_visit||0)+'</span>':'<span class="vs">vs</span>';
+    var copa=p.cat==='A'&&p.tipo&&p.tipo!=='grupo'&&copas[p.tipo]?'<div style="text-align:center"><span class="fx-copa">'+copas[p.tipo]+'</span></div>':'';
+    var sub=[];
+    if(p.estado==='live')sub.push('<b style="color:var(--green)">● EN VIVO</b>');
+    if(p.estado==='finalizado')sub.push('Final');
+    if(p.referee)sub.push('Árbitro: '+p.referee);
+    html+='<div class="fx-row'+cls+'">';
+    html+='<div class="fx-cancha"><b>Cancha '+p.cancha+'</b>'+(sp?'<small>'+sp+'</small>':'')+'</div>';
+    html+='<div><div class="fx-eq"><span class="l">'+(esFav?'⭐ ':'')+(p.local||'?')+'</span>'+mid+'<span class="r">'+(p.visitante||'?')+'</span></div>'+copa+(sub.length?'<div class="fx-sub" style="margin-top:4px">'+sub.join(' · ')+'</div>':'')+'</div>';
+    html+='<span class="fx-pill" style="background:'+(catColors[p.cat]||'#888')+'">'+(catCorto[p.cat]||p.cat||'')+'</span>';
     html+='</div>';
-    html+='<div class="team-name team-right">'+(p.visitante||'?')+'</div></div>';
   });
+  if(grupo)html+='</div></div>';
   list.innerHTML=html;
   if(currentTab==='miequipo')renderMiEquipo();
 }
@@ -2278,7 +2325,7 @@ function initCountdown(){
     var diff=target-now;
     var disp=document.getElementById('countdownDisplay');
     if(diff<=0){
-      if(disp)disp.innerHTML='<div class="countdown-done">🏉 ¡El torneo ha comenzado!</div>';
+      if(disp)disp.innerHTML='<div class="cd-done">🏉 ¡Arrancó el NAVE56!</div>';
       return;
     }
     var days=Math.floor(diff/86400000);
@@ -2404,37 +2451,30 @@ addEventListener('DOMContentLoaded',function(){
     3. Abrí <b>NAVE56</b> desde el ícono y tocá <b>Activar</b>
   </div>
 </div>
-  <div class="countdown-banner" id="countdownBanner">
-    <div class="countdown-wm" id="countdownWm"></div>
-    <div class="countdown-label">⏳ Cuenta regresiva · NAVE56 2026</div>
-    <div class="countdown-units" id="countdownDisplay">
-      <div class="countdown-unit"><span class="countdown-num" id="cd-days">--</span><span class="countdown-sub">días</span></div>
-      <div class="countdown-sep">:</div>
-      <div class="countdown-unit"><span class="countdown-num" id="cd-hours">--</span><span class="countdown-sub">horas</span></div>
-      <div class="countdown-sep">:</div>
-      <div class="countdown-unit"><span class="countdown-num" id="cd-mins">--</span><span class="countdown-sub">min</span></div>
-      <div class="countdown-sep">:</div>
-      <div class="countdown-unit"><span class="countdown-num" id="cd-secs">--</span><span class="countdown-sub">seg</span></div>
+  <div class="hero">
+    <div>
+      <div class="hero-kicker">56° Encuentro Nacional de Veteranos</div>
+      <div class="hero-title">NAVE56 · Buenos Aires</div>
+      <div class="hero-meta"><span>📅 21 y 22 de noviembre</span><span>📍 Club Hindú, Don Torcuato</span><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" target="_blank" rel="noopener">Cómo llegar →</a></div>
+    </div>
+    <div class="cd" id="countdownDisplay">
+      <div class="cd-t"><b id="cd-days">--</b><span>días</span></div>
+      <div class="cd-t"><b id="cd-hours">--</b><span>horas</span></div>
+      <div class="cd-t"><b id="cd-mins">--</b><span>min</span></div>
+      <div class="cd-t"><b id="cd-secs">--</b><span>seg</span></div>
     </div>
   </div>
-  <div class="stats-row">
-    <div class="stat-card"><div class="stat-label">📅 Fecha</div><div class="stat-value" style="font-size:16px;">21-22 Nov 2026</div></div>
-    <div class="stat-card"><div class="stat-label">📍 Sede</div><div class="stat-value" style="font-size:15px;">Club Hindú</div><div style="margin-top:4px;"><a href="https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires" onclick="window.open('https://maps.google.com/?q=Club+Hindu+Don+Torcuato+Buenos+Aires');return false;" style="font-size:11px;color:var(--accent);text-decoration:none;font-weight:600;letter-spacing:.03em;">Ver en Maps →</a></div></div>
-    <div class="stat-card"><div class="stat-label">🏉 Equipos</div><div class="stat-value" id="stat-equipos">0</div></div>
-    <div class="stat-card" onclick="setFilter('live',document.querySelector('.live-btn'))" style="cursor:pointer;" title="Ver partidos en vivo"><div class="stat-label">⚡ En Vivo</div><div class="stat-value live" id="stat-live">0</div></div>
-    <div class="stat-card"><div class="stat-label">👥 Personas</div><div class="stat-value" id="stat-personas" style="transition:color .3s;">—</div></div>
-  </div>
-  <div class="fx-filtros">
+  <div style="display:none"><span id="stat-equipos"></span><span id="stat-live"></span><span id="stat-personas"></span><span id="countdownWm"></span></div>
+  <div class="fx-bar">
     <div class="seg" id="fx-dia">
-      <button class="on" onclick="setFxDia('todos',this)">Todos</button>
-      <button onclick="setFxDia('1',this)">Sáb 21</button>
-      <button onclick="setFxDia('2',this)">Dom 22</button>
+      <button onclick="setFxDia('1',this)">Sábado 21</button>
+      <button onclick="setFxDia('2',this)">Domingo 22</button>
+      <button class="on" onclick="setFxDia('todos',this)">Ambos días</button>
     </div>
     <div class="seg-row" id="fx-tipo">
-      <button class="chip c-all on" onclick="setFxTipo('todos',this)">Todos</button>
-      <button class="chip c-live live-btn" onclick="setFxTipo('live',this)">● En vivo</button>
-      <button class="chip c-a" onclick="setFxTipo('catA',this)">A · Competitivo</button>
-      <button class="chip c-b" onclick="setFxTipo('catB',this)">B · Recreativo</button>
+      <button class="chip c-live live-btn" onclick="setFxTipo('live',this)"><i style="background:var(--green)"></i>En vivo</button>
+      <button class="chip c-a" onclick="setFxTipo('catA',this)"><i style="background:#b8963e"></i>A · Competitivo</button>
+      <button class="chip c-b" onclick="setFxTipo('catB',this)"><i style="background:#4b8ef0"></i>B · Recreativo</button>
     </div>
   </div>
   <div class="partidos-list" id="partidos-list">
