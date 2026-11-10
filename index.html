@@ -1,3 +1,4 @@
+<script>if(/github\.io$/.test(location.hostname)){location.replace('https://app.nave56.com.ar/'+location.search+location.hash);}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -7,8 +8,8 @@
       appId: "57793616-4667-47c4-946d-5224d6f156b7",
       safari_web_id: "web.onesignal.auto.57793616-4667-47c4-946d-5224d6f156b7",
       notifyButton: { enable: false },
-      serviceWorkerPath: "/nave56/sw.js",
-      serviceWorkerParam: { scope: "/nave56/" },
+      serviceWorkerPath: "/sw.js",
+      serviceWorkerParam: { scope: "/" },
       promptOptions: {
         slidedown: {
           prompts: [{
@@ -30,7 +31,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="NAVE56">
 <meta name="theme-color" content="#0a0e14">
-<link rel="manifest" href="/nave56/manifest.json">
+<link rel="manifest" href="/manifest.json">
 <title>NAVE56 · Buenos Aires 2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -793,13 +794,13 @@ function sha256Hex(ascii){
   return result;
 }
 function utf8(s){return unescape(encodeURIComponent(s));}
-var ADMIN_USERS={'mesa':{n:'Mesa de Control',h:'8dd2a6e90f8ff880017c829650909b19c3979244092595b35fad8aafb29322f6'},'matias':{n:'Matias',h:'0a3ddb80e89f69a0823f46dca487410688dc462418e19055d1b180f748870e03'},'quique':{n:'Quique',h:'5e7301ec39fe851a7440df31cdf1343dc59b3a16ce0d07ac37a573123d3057b4'},'hernan':{n:'Hernan',h:'d63c47e491028cd20b7c2aa76e9ce32db10dc1bbb59a18955fb020d4ccf36ec7'},'chanchi':{n:'Chanchi',h:'22847b214f3f6f9f31d17c77014360326f610f80f2fa03b088cc864b392fe7da'},'sochi':{n:'Sochi',h:'7d0b06a14ada96af135bc0b36c57cd054e452cf64e8b63260ce383ad5c8ae9b6'}};
+var ADMIN_USERS={'chanchi':{n:'Chanchi',h:'f1f7bad1289093bc9228f8b2f1ef8c283c500fd1fc47eaeadce750fe8cc1f626'},'mesa':{n:'Mesa de Control',h:'6896e6aad8b6af33a7f056fe1e73ee06a40395601bd64d884801b9e9d2cd0cac'},'matias':{n:'Matias',h:'860e5cf4a3bd6804df5c7cf419975fa2f9f39174671f8f3ee917762083db422b'}};
 var adminUser=null;
 try{var _au=sessionStorage.getItem('nave56_admin_user');if(_au&&ADMIN_USERS[_au])adminUser=_au;}catch(e){}
 function normUser(u){return String(u||'').trim().toLowerCase().normalize?String(u||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''):String(u||'').trim().toLowerCase();}
 function submitAdminLogin(){
   var user=normUser(document.getElementById('admin-user-input').value);
-  var pwd=document.getElementById('admin-pwd-input').value;
+  var pwd=String(document.getElementById('admin-pwd-input').value||'').replace(/\s+/g,'');
   var err=document.getElementById('admin-pwd-error');
   var u=ADMIN_USERS[user];
   if(u&&sha256Hex(utf8('nave56|'+user+'|'+pwd))===u.h){
@@ -2852,7 +2853,7 @@ addEventListener('DOMContentLoaded',function(){
     </div>
     <div class="admin-section">
       <div class="admin-section-title">URL al abrir (opcional)</div>
-      <input id="notif-url" type="text" placeholder="https://matiasfrancois-prog.github.io/nave56/" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);">
+      <input id="notif-url" type="text" placeholder="https://app.nave56.com.ar/" style="width:100%;box-sizing:border-box;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:15px;color:var(--fg);">
     </div>
     <button class="btn-admin" onclick="enviarNotificacion()" style="width:100%;margin-top:8px;font-size:15px;padding:12px;">📤 Enviar a todos los suscriptores</button>
     <div id="notif-status" style="margin-top:12px;font-size:13px;text-align:center;color:var(--muted);"></div>
@@ -3143,7 +3144,7 @@ var EQUIPO_LOGOS={
   // Al volver a la app, chequear SW nuevo en silencio (se activa solo, sin preguntar)
   document.addEventListener('visibilitychange', function(){
     if (document.visibilityState !== 'visible') return;
-    navigator.serviceWorker.getRegistration('/nave56/').then(function(reg){ if(reg) reg.update().catch(function(){}); }).catch(function(){});
+    navigator.serviceWorker.getRegistration('/').then(function(reg){ if(reg) reg.update().catch(function(){}); }).catch(function(){});
   });
 })();
 
@@ -3151,7 +3152,7 @@ var EQUIPO_LOGOS={
 var NAVE56_OS_APP='57793616-4667-47c4-946d-5224d6f156b7';
 var NAVE56_OS_KEY='os_v2_app_k54tmfsgm5d4jfdnk'+'isnn4kww5lju626huhurz4hrah2d5jk7srliu3c55r7r7n4wdlnayhvlwgrwggorphv4ckmabzmji5ahbggceq';
 var NAVE56_OS_SEGMENT='Total Subscriptions';
-var NAVE56_URL='https://matiasfrancois-prog.github.io/nave56/';
+var NAVE56_URL='https://app.nave56.com.ar/';
 function osEnviar(titulo,msg,url,cb){
   var body={app_id:NAVE56_OS_APP,target_channel:'push',included_segments:[NAVE56_OS_SEGMENT],
     headings:{en:titulo,es:titulo},contents:{en:msg,es:msg},url:url||NAVE56_URL};
@@ -3195,7 +3196,7 @@ function activarNotificaciones(){
 }
 function swPushSub(){
   if(!('serviceWorker' in navigator))return Promise.resolve(null);
-  return navigator.serviceWorker.getRegistration('/nave56/').then(function(reg){
+  return navigator.serviceWorker.getRegistration('/').then(function(reg){
     if(!reg||!reg.pushManager)return null;
     return reg.pushManager.getSubscription();
   }).catch(function(){return null;});
