@@ -3090,10 +3090,13 @@ addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-fotos-mob" onclick="masIr('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
     <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras ↗</span></a>
     <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram ↗</span></a>
+    <button class="nav-tab" id="tab-admin-mob" onclick="masCerrar();checkAuth()"><span class="tab-icon">⚙</span><span class="tab-label">Admin</span></button>
   </div>
 </div>
 <script>
-var MAS_TABS=['agrupaciones','cronograma','mapa','gastro','sponsors','fotos'];
+var MAS_TABS=['agrupaciones','cronograma','mapa','gastro','sponsors','fotos','admin'];
+// Acceso directo: app.nave56.com.ar/#admin o ?admin abre el ingreso
+addEventListener('load',function(){if(/(^|[?&])admin\b/.test(location.search.slice(1))||location.hash==='#admin'){setTimeout(checkAuth,600);}});
 function masToggle(){var h=document.getElementById('mas-hoja');if(h.classList.contains('open'))masCerrar();else{h.classList.add('open');document.getElementById('mas-velo').classList.add('open');}}
 function masCerrar(){var h=document.getElementById('mas-hoja');if(h)h.classList.remove('open');var v=document.getElementById('mas-velo');if(v)v.classList.remove('open');}
 function masIr(t){masCerrar();showTab(t);}
