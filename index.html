@@ -793,7 +793,7 @@ function sha256Hex(ascii){
   return result;
 }
 function utf8(s){return unescape(encodeURIComponent(s));}
-var ADMIN_USERS={'matias':{n:'Matias',h:'0a3ddb80e89f69a0823f46dca487410688dc462418e19055d1b180f748870e03'},'quique':{n:'Quique',h:'5e7301ec39fe851a7440df31cdf1343dc59b3a16ce0d07ac37a573123d3057b4'},'hernan':{n:'Hernan',h:'d63c47e491028cd20b7c2aa76e9ce32db10dc1bbb59a18955fb020d4ccf36ec7'},'chanchi':{n:'Chanchi',h:'22847b214f3f6f9f31d17c77014360326f610f80f2fa03b088cc864b392fe7da'},'sochi':{n:'Sochi',h:'7d0b06a14ada96af135bc0b36c57cd054e452cf64e8b63260ce383ad5c8ae9b6'}};
+var ADMIN_USERS={'mesa':{n:'Mesa de Control',h:'8dd2a6e90f8ff880017c829650909b19c3979244092595b35fad8aafb29322f6'},'matias':{n:'Matias',h:'0a3ddb80e89f69a0823f46dca487410688dc462418e19055d1b180f748870e03'},'quique':{n:'Quique',h:'5e7301ec39fe851a7440df31cdf1343dc59b3a16ce0d07ac37a573123d3057b4'},'hernan':{n:'Hernan',h:'d63c47e491028cd20b7c2aa76e9ce32db10dc1bbb59a18955fb020d4ccf36ec7'},'chanchi':{n:'Chanchi',h:'22847b214f3f6f9f31d17c77014360326f610f80f2fa03b088cc864b392fe7da'},'sochi':{n:'Sochi',h:'7d0b06a14ada96af135bc0b36c57cd054e452cf64e8b63260ce383ad5c8ae9b6'}};
 var adminUser=null;
 try{var _au=sessionStorage.getItem('nave56_admin_user');if(_au&&ADMIN_USERS[_au])adminUser=_au;}catch(e){}
 function normUser(u){return String(u||'').trim().toLowerCase().normalize?String(u||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''):String(u||'').trim().toLowerCase();}
@@ -1697,6 +1697,27 @@ function addSponsor(){
 }
 function delSponsor(i){state.sponsors.splice(i,1);saveState();renderSponsors();}
 
+function reiniciarResultados(){
+  var t=prompt('Esto vuelve los 92 partidos a "Próximo" con marcador 0–0 y borra tries, tarjetas y estados.\nEl fixture y los árbitros asignados NO se tocan.\n\nEscribí CERO para confirmar:');
+  if(t===null)return;
+  if(String(t).trim().toUpperCase()!=='CERO'){showToast('Cancelado: no escribiste CERO');return;}
+  var body={estado:'proximo',pts_l:0,pts_v:0,tries_l:0,tries_v:0,conv_l:0,conv_v:0,drops_l:0,drops_v:0,am_l:0,am_v:0,rj_l:0,rj_v:0};
+  var xhr=new XMLHttpRequest();
+  xhr.open('PATCH',SUPABASE_URL+'/rest/v1/partidos?id=not.is.null',true);
+  xhr.setRequestHeader('apikey',SUPABASE_KEY);xhr.setRequestHeader('Authorization','Bearer '+SUPABASE_KEY);
+  xhr.setRequestHeader('Content-Type','application/json');xhr.setRequestHeader('Prefer','return=minimal');
+  xhr.onload=function(){
+    if(xhr.status===200||xhr.status===204){
+      try{localStorage.removeItem('nave56_notif_env');}catch(e){}
+      state.partidos.forEach(function(p){p.estado='proximo';p.score_local=0;p.score_visit=0;p.tarjetas=[];});
+      saveState();renderPartidos();renderHistorial();renderCanchas();renderAdminPartidos();
+      fetchSupabase();
+      showToast('✅ Resultados en cero. Listo para el torneo');
+    } else showToast('❌ No se pudo reiniciar (HTTP '+xhr.status+')');
+  };
+  xhr.onerror=function(){showToast('❌ Error de red al reiniciar');};
+  xhr.send(JSON.stringify(body));
+}
 function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;state={partidos:[],equipos:[],gastro:[],sponsors:[]};saveState();renderPartidos();renderCanchas();renderHistorial();renderMapa();renderSponsors();renderGastro();showToast('Datos borrados');}
 
 
@@ -2229,10 +2250,9 @@ function saveSupabase(partido){
       if(xhr.status===200||xhr.status===204){
         showToast('✅ Guardado en BD ('+partido.estado+')');
         // Disparar notificación push si el estado es relevante
-        if((partido.estado==='live'||partido.estado==='finalizado')&&notifEstadoPrevio(partido)!==partido.estado){
-          notifMarcar(partido);
-          enviarNotifPartido(partido);
-        }
+        if(partido.estado==='finalizado'){
+          if(notifEstadoPrevio(partido)!=='finalizado'){notifMarcar(partido);enviarNotifPartido(partido);}
+        } else { notifOlvidar(partido); }
       } else {
         showToast('⚠️ Error Supabase '+xhr.status+': '+xhr.responseText.substring(0,120));
       }
@@ -2244,14 +2264,12 @@ function saveSupabase(partido){
 
 function notifMapa(){try{return JSON.parse(localStorage.getItem('nave56_notif_env')||'{}');}catch(e){return {};}}
 function notifEstadoPrevio(p){return notifMapa()[String(p.id)]||'';}
+function notifOlvidar(p){var m=notifMapa();if(m[String(p.id)]){delete m[String(p.id)];try{localStorage.setItem('nave56_notif_env',JSON.stringify(m));}catch(e){}}}
 function notifMarcar(p){var m=notifMapa();m[String(p.id)]=p.estado;try{localStorage.setItem('nave56_notif_env',JSON.stringify(m));}catch(e){}}
 function enviarNotifPartido(partido){
   try{
     var titulo,msg;
-    if(partido.estado==='live'){
-      titulo='🔴 EN VIVO — NAVE56';
-      msg=partido.local+' vs '+partido.visitante+' · Cancha '+partido.cancha;
-    } else if(partido.estado==='finalizado'){
+    if(partido.estado==='finalizado'){
       titulo='🏉 Resultado NAVE56';
       msg=partido.local+' '+(partido.score_local||0)+' — '+(partido.score_visit||0)+' '+partido.visitante;
     } else { return; }
@@ -2267,6 +2285,7 @@ function enviarNotifPartido(partido){
 
 function procesarPartidosSupabase(data){
   if(!data||!data.length){return;}
+  try{var _m=notifMapa(),_c=false;data.forEach(function(r){if((r.estado||'')!=='finalizado'&&_m[String(r.id)]){delete _m[String(r.id)];_c=true;}});if(_c)localStorage.setItem('nave56_notif_env',JSON.stringify(_m));}catch(e){}
   var fromServer=[];
   data.forEach(function(row){
     fromServer.push({
@@ -2710,6 +2729,7 @@ addEventListener('DOMContentLoaded',function(){
       </button>
     </div>
     <div style="text-align:center;">
+      <button class="btn-admin" onclick="reiniciarResultados()" style="font-size:13px;padding:8px 16px;margin-bottom:10px;">🧹 Dejar resultados en cero (fin de pruebas)</button><br>
       <button class="btn-danger" onclick="resetAll()" style="font-size:12px;padding:6px 16px;">⚠ Borrar todos los datos</button>
     </div>
   </div>
