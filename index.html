@@ -798,7 +798,7 @@ function sha256Hex(ascii){
 function utf8(s){return unescape(encodeURIComponent(s));}
 var ADMIN_USERS={'chanchi':{n:'Chanchi',h:'f1f7bad1289093bc9228f8b2f1ef8c283c500fd1fc47eaeadce750fe8cc1f626'},'mesa':{n:'Mesa de Control',h:'6896e6aad8b6af33a7f056fe1e73ee06a40395601bd64d884801b9e9d2cd0cac'},'matias':{n:'Matias',h:'860e5cf4a3bd6804df5c7cf419975fa2f9f39174671f8f3ee917762083db422b'}};
 var adminUser=null;
-try{var _au=sessionStorage.getItem('nave56_admin_user');if(_au&&ADMIN_USERS[_au])adminUser=_au;}catch(e){}
+try{var _au=localStorage.getItem('nave56_admin_user')||sessionStorage.getItem('nave56_admin_user');if(_au&&ADMIN_USERS[_au])adminUser=_au;}catch(e){}
 function normUser(u){return String(u||'').trim().toLowerCase().normalize?String(u||'').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''):String(u||'').trim().toLowerCase();}
 function submitAdminLogin(){
   var user=normUser(document.getElementById('admin-user-input').value);
@@ -807,7 +807,8 @@ function submitAdminLogin(){
   var u=ADMIN_USERS[user];
   if(u&&sha256Hex(utf8('nave56|'+user+'|'+pwd))===u.h){
     adminUser=user;
-    try{sessionStorage.setItem('nave56_admin_user',user);}catch(e){}
+    try{localStorage.setItem('nave56_admin_user',user);sessionStorage.setItem('nave56_admin_user',user);}catch(e){}
+    adminBtnMovil();
     document.getElementById('admin-login-overlay').style.display='none';
     document.getElementById('admin-user-input').value='';
     document.getElementById('admin-pwd-input').value='';
@@ -823,7 +824,8 @@ function submitAdminLogin(){
 }
 function adminLogout(){
   adminUser=null;isAdmin=false;
-  try{sessionStorage.removeItem('nave56_admin_user');}catch(e){}
+  try{sessionStorage.removeItem('nave56_admin_user');localStorage.removeItem('nave56_admin_user');}catch(e){}
+  adminBtnMovil();
   var t=document.getElementById('tab-admin-nav');if(t)t.parentNode.removeChild(t);
 }
 
@@ -3090,11 +3092,13 @@ addEventListener('DOMContentLoaded',function(){
     <button class="nav-tab" id="tab-fotos-mob" onclick="masIr('fotos')"><span class="tab-icon">🖼</span><span class="tab-label">Fotos</span></button>
     <a class="nav-tab nav-ext" id="tab-tienda-mob" href="https://fragrant-dawn-e62f.remeras-nave56.workers.dev" target="_blank" rel="noopener"><span class="tab-icon">👕</span><span class="tab-label">Remeras ↗</span></a>
     <a class="nav-tab nav-ext" id="tab-ig-mob" href="https://www.instagram.com/nave56.ba/" target="_blank" rel="noopener"><span class="tab-icon">📸</span><span class="tab-label">Instagram ↗</span></a>
-    <button class="nav-tab" id="tab-admin-mob" onclick="masCerrar();checkAuth()"><span class="tab-icon">⚙</span><span class="tab-label">Admin</span></button>
+    <button class="nav-tab" id="tab-admin-mob" style="display:none" onclick="masCerrar();checkAuth()"><span class="tab-icon">⚙</span><span class="tab-label">Admin</span></button>
   </div>
 </div>
 <script>
 var MAS_TABS=['agrupaciones','cronograma','mapa','gastro','sponsors','fotos','admin'];
+function adminBtnMovil(){var b=document.getElementById('tab-admin-mob');if(b)b.style.display=(typeof adminUser!=='undefined'&&adminUser)?'':'none';}
+addEventListener('DOMContentLoaded',adminBtnMovil);
 // Acceso directo: app.nave56.com.ar/#admin o ?admin abre el ingreso
 addEventListener('load',function(){if(/(^|[?&])admin\b/.test(location.search.slice(1))||location.hash==='#admin'){setTimeout(checkAuth,600);}});
 function masToggle(){var h=document.getElementById('mas-hoja');if(h.classList.contains('open'))masCerrar();else{h.classList.add('open');document.getElementById('mas-velo').classList.add('open');}}
