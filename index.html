@@ -517,6 +517,20 @@ var AGRUPACIONES=[
 var miEq={agrup:'',cat:'AB',copa:''};
 var miEqFav=null;
 try{var _f=localStorage.getItem('nave56_fav');if(_f){miEqFav=JSON.parse(_f);if(miEqFav&&miEqFav.agrup){miEq.agrup=miEqFav.agrup;miEq.cat=miEqFav.cat||'AB';}}}catch(e){miEqFav=null;}
+// ── Rótulos visibles: A→C (Competitivo), B→R (Recreativo). Los datos internos siguen siendo A/B ──
+var CR_RE=/(^|[^A-Za-zÁÉÍÓÚÑÜáéíóúñü0-9])([A-ZÁÉÍÓÚÑÜ0-9'.]{2,})\s([AB])(?=$|[^A-Za-zÁÉÍÓÚÑÜáéíóúñü0-9])/g;
+function cr(t){if(t==null)return t;return String(t).replace(CR_RE,function(m,a,w,l){return w==='ZONA'?m:a+w+' '+(l==='A'?'C':'R');});}
+function catL(c){return c==='A'?'C':c==='B'?'R':c;}
+function crNodo(n){
+  if(n.nodeType===3){var v=n.nodeValue;if(v&&/\s[AB]/.test(v)){var w=cr(v);if(w!==v)n.nodeValue=w;}return;}
+  if(n.nodeType!==1)return;var tg=n.tagName;if(tg==='SCRIPT'||tg==='STYLE'||tg==='TEXTAREA'||tg==='INPUT')return;
+  var tw=document.createTreeWalker(n,NodeFilter.SHOW_TEXT,null),x;while((x=tw.nextNode())){var p=x.parentNode&&x.parentNode.tagName;if(p==='SCRIPT'||p==='STYLE'||p==='TEXTAREA')continue;var v2=x.nodeValue;if(v2&&/\s[AB]/.test(v2)){var w2=cr(v2);if(w2!==v2)x.nodeValue=w2;}}
+}
+addEventListener('DOMContentLoaded',function(){
+  crNodo(document.body);
+  new MutationObserver(function(ms){ms.forEach(function(m){if(m.type==='characterData')crNodo(m.target);else for(var i=0;i<m.addedNodes.length;i++)crNodo(m.addedNodes[i]);});})
+    .observe(document.body,{childList:true,subtree:true,characterData:true});
+});
 function eqBase(n){return String(n||'').trim().replace(/\s+[AB]$/,'');}
 function eqCatDe(n){var m=/\s([AB])$/.exec(String(n||'').trim());return m?m[1]:'';}
 function miEqAgrupaciones(){
@@ -618,7 +632,7 @@ function renderCopa(body){
     if(miEq.copa==='grupo')return p.cat==='A'&&(!p.tipo||p.tipo==='grupo');
     return p.cat==='A'&&p.tipo===miEq.copa;
   }).sort(miEqOrd);
-  var subt=miEq.copa==='recre'?'Categoría B · todos los partidos recreativos':miEq.copa==='grupo'?'Categoría A · fase de grupos, define el pase a las copas':'Categoría A · los partidos aparecen a medida que se definen los cruces';
+  var subt=miEq.copa==='recre'?'Categoría R · todos los partidos recreativos':miEq.copa==='grupo'?'Categoría C · fase de grupos, define el pase a las copas':'Categoría A · los partidos aparecen a medida que se definen los cruces';
   var html='<div class="mieq-head"><img src="'+NAVE56_LOGO+'" alt=""><div><div class="mieq-name">'+nombres[miEq.copa]+'</div><div class="mieq-stats"><span>'+subt+'</span></div></div></div>';
   if(!ps.length){body.innerHTML=html+'<div class="empty-state"><div class="empty-icon">🏆</div><p>Todavía no hay partidos cargados en esta instancia.'+(miEq.copa==='oro'||miEq.copa==='plata'||miEq.copa==='bronce'?'<br>Se cargan cuando termina la zona clasificatoria.':'')+'</p></div>';return;}
   function fila(p){
@@ -889,7 +903,7 @@ function renderPartidos(){
   if(!filtered.length){list.innerHTML='<div class="fx-vacio">'+(fxTipo==='live'?'No hay partidos en vivo en este momento':'No hay partidos para este filtro')+'</div>';if(currentTab==='miequipo')renderMiEquipo();return;}
   filtered.sort(ordenPartidos);
   var catColors={'A':'#b8963e','B':'#4b8ef0','C':'#9b6fd4'};
-  var catCorto={'A':'A · COMP','B':'B · RECR','C':'SÚPER'};
+  var catCorto={'A':'C · COMP','B':'R · RECR','C':'SÚPER'};
   var copas={oro:'🥇 Copa de Oro',plata:'🥈 Copa de Plata',bronce:'🥉 Copa de Bronce'};
   var html='',grupo='';
   filtered.forEach(function(p){
@@ -989,7 +1003,7 @@ function renderCanchas(){
       var der;
       if(p.estado==='live')der='<b style="color:var(--green);font-variant-numeric:tabular-nums;">'+(p.score_local||0)+'–'+(p.score_visit||0)+'</b>';
       else if(p.estado==='finalizado')der='<b style="font-variant-numeric:tabular-nums;">'+(p.score_local||0)+'–'+(p.score_visit||0)+'</b>';
-      else der='<span class="cat-pill" style="background:'+cc+';">'+(p.cat==='C'?'SÚPER':(p.cat||''))+'</span>';
+      else der='<span class="cat-pill" style="background:'+cc+';">'+(p.cat==='C'?'SÚPER':catL(p.cat||''))+'</span>';
       html+='<div class="cn-fila'+cls+'"><span class="h">'+(p.hora||'')+'</span>';
       html+='<span class="eq">'+(p.local||'?')+'<small>vs '+(p.visitante||'?')+(p.estado==='live'?' · <b style="color:var(--green)">● EN VIVO</b>':'')+'</small></span>';
       html+=der+'</div>';
@@ -1015,7 +1029,7 @@ function renderHistorial(){
     html+='<div class="historial-card">';
     // Header: categoría + tipo + cancha + hora
     html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">';
-    html+='<span style="background:'+catCol+';color:#fff;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">CAT '+p.cat+'</span>';
+    html+='<span style="background:'+catCol+';color:#fff;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">CAT '+catL(p.cat)+'</span>';
     if(tipoH)html+='<span style="background:rgba(200,168,75,.15);color:#c8a84b;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:700;">'+tipoH+'</span>';
     html+='<span style="margin-left:auto;font-size:11px;color:var(--muted);">C'+p.cancha+' · '+diaStr+' '+p.hora+'</span>';
     html+='</div>';
@@ -1226,7 +1240,7 @@ function instChange(v){var a=String(v).split('|');var c=document.getElementById(
 function fillPartidoSelects(){
   var selL=document.getElementById('p-local'),selV=document.getElementById('p-visit');if(!selL||!selV)return;
   var cat=(document.getElementById('p-cat')||{}).value||'A';var vl=selL.value,vv=selV.value;
-  var opts='<option value="">-- Equipo '+cat+' --</option>';
+  var opts='<option value="">-- Equipo '+catL(cat)+' --</option>';
   (state.equipos||[]).forEach(function(e){var ec=e.cat||catDeEquipo(e.nombre);if(ec&&ec!==cat)return;opts+='<option>'+e.nombre+'</option>';});
   selL.innerHTML=opts;selV.innerHTML=opts;selL.value=vl;selV.value=vv;
 }
@@ -1584,12 +1598,12 @@ function planillaCard(p,num){
   h+='<div class="id"><small>N° PARTIDO</small><div class="dg">'+planillaDigits(p._blank?'':planillaNum(num),3)+'</div></div></div>';
   h+='<div class="row"><div class="box" style="flex:1.1"><div class="lbl">Día</div><div class="opts">'+planillaCk(dia==='1','SÁB 21')+planillaCk(dia==='2','DOM 22')+'</div></div>';
   h+='<div class="box" style="flex:1"><div class="lbl">Hora</div><div class="dg">'+planillaDigits(hora.substr(0,2),2)+'<span>:</span>'+planillaDigits(hora.substr(2,2),2)+'</div></div>';
-  h+='<div class="box" style="flex:1"><div class="lbl">Categoría</div><div class="opts">'+planillaCk(cat==='A','A')+planillaCk(cat==='B','B')+'</div></div></div>';
+  h+='<div class="box" style="flex:1"><div class="lbl">Categoría</div><div class="opts">'+planillaCk(cat==='A','C')+planillaCk(cat==='B','R')+'</div></div></div>';
   h+='<div class="box" style="margin-top:2.4mm"><div class="lbl">Cancha</div><div class="opts" style="gap:3.2mm">';
   for(var c=1;c<=7;c++){h+=planillaCk(String(p.cancha)===String(c),String(c));}
   h+='</div></div>';
-  h+='<div class="row"><div class="box" style="flex:1"><div class="lbl">Equipo LOCAL</div><div class="name">'+planillaEsc(p.local)+'</div></div>';
-  h+='<div class="box" style="flex:1"><div class="lbl">Equipo VISITANTE</div><div class="name">'+planillaEsc(p.visitante)+'</div></div></div>';
+  h+='<div class="row"><div class="box" style="flex:1"><div class="lbl">Equipo LOCAL</div><div class="name">'+planillaEsc(cr(p.local))+'</div></div>';
+  h+='<div class="box" style="flex:1"><div class="lbl">Equipo VISITANTE</div><div class="name">'+planillaEsc(cr(p.visitante))+'</div></div></div>';
   h+='<table><tr><th style="width:30mm">CONCEPTO</th><th>LOCAL<br>(cantidad)</th><th>VISITANTE<br>(cantidad)</th></tr>';
   var filas=[['TRIES','5 pts c/u'],['CONVERSIONES','2 pts c/u'],['PENALES','3 pts c/u'],['DROPS','3 pts c/u'],['AMARILLAS','N° de camiseta'],['ROJAS','N° de camiseta']];
   filas.forEach(function(f){h+='<tr><td class="c">'+f[0]+'<small>'+f[1]+'</small></td><td></td><td></td></tr>';});
@@ -1817,7 +1831,7 @@ function resetAll(){if(!confirm('¿Borrar todos los datos?'))return;state={parti
     ps.forEach(function(p){
       if(y>270){doc.addPage();y=20;}
       doc.setFillColor(240,242,245);doc.roundedRect(margin,y-4,pageW-margin*2,12,2,2,'F');
-      doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.text(p.local,margin+2,y+4);doc.text(p.visitante,pageW-margin-2,y+4,'right');
+      doc.setTextColor(30,30,30);doc.setFont('helvetica','bold');doc.text(cr(p.local),margin+2,y+4);doc.text(cr(p.visitante),pageW-margin-2,y+4,'right');
       doc.setTextColor(139,148,158);doc.setFont('helvetica','normal');doc.text('C'+p.cancha+' · '+p.hora,pageW/2,y+4,'center');
       if(p.estado!=='proximo'){doc.setTextColor(200,168,75);doc.setFont('helvetica','bold');doc.text((p.score_local||0)+' – '+(p.score_visit||0),pageW/2,y-1,'center');}
       y+=14;
@@ -2276,7 +2290,7 @@ function enviarNotifPartido(partido){
     var titulo,msg;
     if(partido.estado==='finalizado'){
       titulo='🏉 Resultado NAVE56';
-      msg=partido.local+' '+(partido.score_local||0)+' — '+(partido.score_visit||0)+' '+partido.visitante;
+      msg=cr(partido.local)+' '+(partido.score_local||0)+' — '+(partido.score_visit||0)+' '+cr(partido.visitante);
     } else { return; }
     osEnviar(titulo,msg,'',function(ok,d,st){
       if(ok)showToast('🔔 Notificación enviada ('+(d.recipients||0)+' suscriptores)');
@@ -2517,8 +2531,8 @@ addEventListener('DOMContentLoaded',function(){
     </div>
     <div class="seg-row" id="fx-tipo">
       <button class="chip c-live live-btn" onclick="setFxTipo('live',this)"><i style="background:var(--green)"></i>En vivo</button>
-      <button class="chip c-a" onclick="setFxTipo('catA',this)"><i style="background:#b8963e"></i>A · Competitivo</button>
-      <button class="chip c-b" onclick="setFxTipo('catB',this)"><i style="background:#4b8ef0"></i>B · Recreativo</button>
+      <button class="chip c-a" onclick="setFxTipo('catA',this)"><i style="background:#b8963e"></i>C · Competitivo</button>
+      <button class="chip c-b" onclick="setFxTipo('catB',this)"><i style="background:#4b8ef0"></i>R · Recreativo</button>
     </div>
   </div>
   <div class="partidos-list" id="partidos-list">
@@ -2752,7 +2766,7 @@ addEventListener('DOMContentLoaded',function(){
       <div class="form-field"><label>Día</label><select id="p-dia"><option value="1">Sábado 21</option><option value="2">Domingo 22</option></select></div>
       <div class="form-field"><label>Hora</label><input type="time" id="p-hora" value="09:00"></div>
       <div class="form-field"><label>Estado</label><select id="p-estado"><option value="proximo">Próximo</option><option value="live">En Vivo</option><option value="finalizado">Finalizado</option></select></div>
-      <div class="form-field"><label>Instancia</label><select id="p-inst" onchange="instChange(this.value)"><option value="A|grupo">📊 Zona clasificatoria (A)</option><option value="A|oro">🥇 Copa Oro (A)</option><option value="A|plata">🥈 Copa Plata (A)</option><option value="A|bronce">🥉 Copa Bronce (A)</option><option value="B|grupo">🎉 Recreativo (B)</option></select><input type="hidden" id="p-cat" value="A"><input type="hidden" id="p-tipo" value="grupo"></div>
+      <div class="form-field"><label>Instancia</label><select id="p-inst" onchange="instChange(this.value)"><option value="A|grupo">📊 Zona clasificatoria (C)</option><option value="A|oro">🥇 Copa Oro (A)</option><option value="A|plata">🥈 Copa Plata (A)</option><option value="A|bronce">🥉 Copa Bronce (A)</option><option value="B|grupo">🎉 Recreativo (B)</option></select><input type="hidden" id="p-cat" value="A"><input type="hidden" id="p-tipo" value="grupo"></div>
       <div class="form-field"><label>Referee</label><select id="p-referee"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 1 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch1"><option value="">-- Sin asignar --</option></select></div>
       <div class="form-field"><label>Juez Touch 2 <span style="font-size:11px;opacity:.6">(opcional)</span></label><select id="p-touch2"><option value="">-- Sin asignar --</option></select></div>
@@ -2792,7 +2806,7 @@ addEventListener('DOMContentLoaded',function(){
     </div>
     <div class="form-grid" style="margin-bottom:10px;">
       <div class="form-field"><label>Nombre</label><input type="text" id="eq-nombre" placeholder="Ej: CUBA RC"></div>
-      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option value="A">A – Competitivo</option><option value="B">B – Recreativo</option></select></div>
+      <div class="form-field"><label>Categoría</label><select id="eq-cat"><option value="A">C – Competitivo</option><option value="B">R – Recreativo</option></select></div>
     </div>
     <button class="btn-save" onclick="addEquipo()" style="margin-bottom:14px;width:100%;">+ Agregar Equipo</button>
     <div class="admin-list" id="admin-equipos-list"></div>
@@ -2873,7 +2887,7 @@ addEventListener('DOMContentLoaded',function(){
   <div class="mieq-bar">
     <select id="mieq-sel" onchange="miEqSelect(this.value)"></select>
     <div class="mieq-seg" id="mieq-seg">
-      <button id="mieq-A" onclick="miEqCat('A')">A</button><button id="mieq-B" onclick="miEqCat('B')">B</button><button id="mieq-AB" onclick="miEqCat('AB')">A + B</button>
+      <button id="mieq-A" onclick="miEqCat('A')">C</button><button id="mieq-B" onclick="miEqCat('B')">R</button><button id="mieq-AB" onclick="miEqCat('AB')">C + R</button>
     </div>
     <button class="mieq-fav" id="mieq-fav" onclick="miEqToggleFav()">☆ Seguir</button>
     <div class="mieq-copas">
