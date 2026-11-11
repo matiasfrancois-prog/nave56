@@ -742,11 +742,11 @@ var PARTIDOS_DEFAULT=[
   {local:'Final Zona B',visitante:'Final Zona B2',cancha:2,dia:2,hora:'15:00',estado:'proximo',score_local:0,score_visit:0,cat:'B'},
 ];
 var REFEREES_DEFAULT=['Alejandro Gómez','Bruno Salinas','Carlos Méndez','Diego Torres','Eduardo Ruiz','Federico López','Gastón Herrera','Hernán Castro','Ignacio Peralta','Juan Martínez','Lucas Fernández','Marcos Díaz','Nicolás Ramírez','Pablo García','Rodrigo Vega'];
-var state={partidos:[],equipos:[],gastro:[],sponsors:[],referees:[]};
+var state={partidos:[],equipos:[],gastro:[],sponsors:[{nombre:"JUST REGIÓN ALLAINE  REGIÓN NYON  CONSULTORES/AS INDEPENDIENTES",cat:"Sponsor"},{nombre:"THE SOCIAL SURFERS",cat:"Sponsor"}],referees:[]};
 
 function loadState(){try{// Partidos: SIEMPRE de Supabase, nunca de localStorage
   state.partidos=PARTIDOS_DEFAULT.slice();
-  var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();state.equipos=state.equipos.filter(function(e){return e.cat!=='C';});if(g)state.gastro=JSON.parse(g);if(s)state.sponsors=JSON.parse(s);var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
+  var e=localStorage.getItem('nave56_e');var g=localStorage.getItem('nave56_g');var s=localStorage.getItem('nave56_s');if(e)state.equipos=JSON.parse(e);else state.equipos=EQUIPOS_DEFAULT.slice();state.equipos=state.equipos.filter(function(e){return e.cat!=='C';});if(g)state.gastro=JSON.parse(g);if(s){JSON.parse(s).forEach(function(x){if(x&&x.nombre&&!state.sponsors.some(function(d){return d.nombre===x.nombre;}))state.sponsors.push(x);});}var rf=localStorage.getItem('nave56_rf');if(rf)state.referees=JSON.parse(rf);else state.referees=REFEREES_DEFAULT.slice();}catch(e){state.equipos=EQUIPOS_DEFAULT.slice();state.partidos=PARTIDOS_DEFAULT.slice();}}
 function saveState(){try{localStorage.setItem('nave56_e',JSON.stringify(state.equipos));localStorage.setItem('nave56_g',JSON.stringify(state.gastro));localStorage.setItem('nave56_s',JSON.stringify(state.sponsors));localStorage.setItem('nave56_rf',JSON.stringify(state.referees));}catch(e){}}
 
 function showTab(name){
