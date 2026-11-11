@@ -1616,10 +1616,17 @@ function planillaCard(p,num){
   return h;
 }
 function planillaCSS(){
-  return '@page{size:A4 landscape;margin:0}*{box-sizing:border-box;margin:0;padding:0}'+
+  return '@page{size:A4 portrait;margin:0}*{box-sizing:border-box;margin:0;padding:0}'+
   'body{font-family:Arial,Helvetica,sans-serif;color:#111;background:#888}'+
-  '.sheet{width:297mm;height:210mm;background:#fff;display:flex;position:relative;margin:0 auto 8mm;page-break-after:always;overflow:hidden}'+
-  '.sheet:last-child{page-break-after:auto}.sheet:after{content:"";position:absolute;left:148.5mm;top:0;bottom:0;border-left:.3mm dashed #999}'+
+  '.sheet{width:210mm;height:297mm;background:#fff;display:grid;grid-template-columns:105mm 105mm;grid-template-rows:148.5mm 148.5mm;position:relative;margin:0 auto 8mm;page-break-after:always;overflow:hidden}'+
+  '.sheet:last-child{page-break-after:auto}'+
+  '.sheet:after{content:"";position:absolute;left:105mm;top:0;bottom:0;border-left:.35mm dashed #777;z-index:2}'+
+  '.sheet:before{content:"";position:absolute;top:148.5mm;left:0;right:0;border-top:.35mm dashed #777;z-index:2}'+
+  '.tij{position:absolute;font-size:11pt;color:#777;background:#fff;line-height:1;z-index:3;padding:0 .6mm}'+
+  '.tij.v{left:105mm;top:1.5mm;transform:translateX(-50%) rotate(-90deg)}.tij.h{top:148.5mm;left:1.5mm;transform:translateY(-55%)}'+
+  '.cell{width:105mm;height:148.5mm;display:flex;align-items:center;justify-content:center;overflow:hidden}'+
+  '.cw{width:98.01mm;height:138.6mm;position:relative;flex:none}'+
+  '.cw .card{position:absolute;top:0;left:0;transform:scale(.66);transform-origin:0 0}'+
   '.card{position:relative;width:148.5mm;height:210mm;padding:7mm 9.5mm 6mm;overflow:hidden;-webkit-print-color-adjust:exact;print-color-adjust:exact}'+
   '.mk{position:absolute;width:6mm;height:6mm;background:#000}.tl{top:3mm;left:3mm}.tr{top:3mm;right:3mm}.bl{bottom:3mm;left:3mm}.br{bottom:3mm;right:3mm}'+
   '.hd{display:flex;align-items:center;gap:3mm;border-bottom:1.2mm solid #1e4a8c;padding-bottom:2mm}.hd img.l{width:15mm;height:15mm;object-fit:contain}.hd .t{flex:1}'+
@@ -1642,12 +1649,22 @@ function planillaCSS(){
   '.bar button{background:#c9a227;border:none;border-radius:6px;padding:8px 16px;font-weight:700;font-size:14px;cursor:pointer;margin-left:10px}'+
   '@media print{body{background:#fff}.bar{display:none}.sheet{margin:0}}';
 }
+function planillaHojas(lista){
+  var out='';
+  for(var k=0;k<lista.length;k+=4){
+    out+='<div class="sheet"><span class="tij v">✂</span><span class="tij h">✂</span>';
+    for(var j=0;j<4;j++){out+='<div class="cell">'+(lista[k+j]?'<div class="cw">'+lista[k+j]+'</div>':'')+'</div>';}
+    out+='</div>';
+  }
+  return out;
+}
 function imprimirPlanillasBlanco(){
   var n=parseInt((document.getElementById('pl-blanco-cant')||{}).value,10)||1;
   if(n<1)n=1;if(n>100)n=100;
   var card=planillaCard({_blank:true},0);
-  var body='<div class="bar">'+n+' hoja(s) A4 · '+(n*2)+' planillas EN BLANCO<button onclick="window.print()">🖨 Imprimir</button></div>';
-  for(var k=0;k<n;k++){body+='<div class="sheet">'+card+card+'</div>';}
+  var lista=[];for(var k=0;k<n*4;k++)lista.push(card);
+  var body='<div class="bar">'+n+' hoja(s) A4 · '+(n*4)+' planillas EN BLANCO · 4 por hoja<button onclick="window.print()">🖨 Imprimir</button></div>';
+  body+=planillaHojas(lista);
   var html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planillas en blanco NAVE56</title><style>'+planillaCSS()+'</style></head><body>'+body+'</body></html>';
   var w=window.open('','_blank');
   if(!w){showToast('Permití ventanas emergentes para imprimir');return;}
@@ -1657,8 +1674,9 @@ function planillaAbrir(indices,titulo){
   if(!indices.length){showToast('No hay partidos para imprimir');return;}
   var nums=planillaOrden();
   var cards=indices.map(function(i){return planillaCard(state.partidos[i],nums[i]);});
-  var body='<div class="bar">'+indices.length+' hoja(s) A4 · 2 copias por partido · '+planillaEsc(titulo)+'<button onclick="window.print()">🖨 Imprimir</button></div>';
-  for(var k=0;k<cards.length;k++){body+='<div class="sheet">'+cards[k]+cards[k]+'</div>';}
+  var lista=[];cards.forEach(function(c){lista.push(c,c);});
+  var body='<div class="bar">'+Math.ceil(lista.length/4)+' hoja(s) A4 · 4 tarjetas por hoja (2 partidos × 2 copias) · '+planillaEsc(titulo)+'<button onclick="window.print()">🖨 Imprimir</button></div>';
+  body+=planillaHojas(lista);
   var html='<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Planillas NAVE56</title><style>'+planillaCSS()+'</style></head><body>'+body+'</body></html>';
   var w=window.open('','_blank');
   if(!w){showToast('Permití ventanas emergentes para imprimir');return;}
