@@ -257,9 +257,21 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .admin-list-item-name{font-weight:600;font-size:14px;}
 .admin-list-item-sub{font-size:12px;color:var(--muted);}
 .admin-partido-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:6px;min-width:0;}
+.adm-sel{position:sticky;top:0;z-index:6;background:var(--bg);padding:8px 0 10px;margin-bottom:6px;}
+.adm-dias{display:flex;gap:6px;margin-bottom:8px;}
+.adm-dias button{flex:1;border:1px solid var(--border);background:var(--card);border-radius:999px;padding:9px 10px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;}
+.adm-dias button.on{background:#1a2738;color:#fff;border-color:#1a2738;}
+.adm-dias small{font-weight:600;opacity:.7;margin-left:4px;}
+.adm-canchas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}
+.adm-canchas button{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:8px 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg);}
+.adm-canchas button b{font-family:'Bebas Neue',sans-serif;font-size:26px;font-weight:400;line-height:1;}
+.adm-canchas button small{font-size:10.5px;color:var(--muted);font-weight:600;white-space:nowrap;}
+.adm-canchas button.on{background:#c8a84b;border-color:#c8a84b;color:#1a2738;}
+.adm-canchas button.on small{color:#1a2738;}
+.adm-canchas button.vacia:not(.on){opacity:.55;}
 .adm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px;}
 .adm-grid .admin-partido-row{margin-bottom:0;}
-.adm-cancha-hd{position:sticky;top:0;z-index:4;background:#1a2738;color:#fff;border-radius:10px;padding:10px 14px;margin:6px 0 10px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;display:flex;align-items:baseline;gap:8px;}
+.adm-cancha-hd{background:#1a2738;color:#fff;border-radius:10px;padding:10px 14px;margin:6px 0 10px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;display:flex;align-items:baseline;gap:8px;}
 .adm-cancha-hd span{color:#c8a84b;}
 .adm-cancha-hd small{margin-left:auto;font-family:Inter,Arial,sans-serif;font-size:12px;letter-spacing:0;color:rgba(255,255,255,.7);}
 @media(max-width:560px){.adm-grid{grid-template-columns:1fr;}}
@@ -1318,20 +1330,32 @@ function renderAdminPartidos(){
   var html='';
   var noFin=state.partidos.filter(function(p){return (p.estado||'').toLowerCase()!=='finalizado';});
   if(!noFin.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px;">✓ Todos los partidos finalizados</div>';return;}
-  noFin.sort(function(a,b){
-    var c=Number(a.cancha)-Number(b.cancha);if(c)return c;
-    if(String(a.dia)!==String(b.dia))return Number(a.dia)-Number(b.dia);
-    return (a.hora||'')>(b.hora||'')?1:(a.hora||'')<(b.hora||'')?-1:0;
+  // ── Selector de cancha y día ──
+  if(!window.admDia){var _h=new Date();window.admDia=(_h.getFullYear()===2026&&_h.getMonth()===10&&_h.getDate()===22)?'2':'1';}
+  if(!window.admCancha){window.admCancha='1';}
+  try{var _sv=JSON.parse(localStorage.getItem('nave56_adm_sel')||'null');if(_sv&&!window._admSelLeido){window.admCancha=_sv.c||'1';window.admDia=_sv.d||window.admDia;}window._admSelLeido=true;}catch(e){}
+  function pend(c,d){return noFin.filter(function(x){return String(x.cancha)===String(c)&&(d==null||String(x.dia)===String(d));}).length;}
+  function fin(c,d){return state.partidos.filter(function(x){return String(x.cancha)===String(c)&&String(x.dia)===String(d)&&(x.estado||'').toLowerCase()==='finalizado';}).length;}
+  html+='<div class="adm-sel">';
+  html+='<div class="adm-dias">';
+  [['1','Sábado 21'],['2','Domingo 22']].forEach(function(d){
+    var n=noFin.filter(function(x){return String(x.dia)===d[0];}).length;
+    html+='<button class="'+(window.admDia===d[0]?'on':'')+'" onclick="admElegir(null,\''+d[0]+'\')">'+d[1]+' <small>'+n+'</small></button>';
   });
-  var canchaAct=null;
-  noFin.forEach(function(p){var i=state.partidos.indexOf(p);
-    if(String(p.cancha)!==canchaAct){
-      if(canchaAct!==null)html+='</div>';
-      canchaAct=String(p.cancha);
-      var nCan=noFin.filter(function(x){return String(x.cancha)===canchaAct;}).length;
-      var spC=sponsorCanchas[canchaAct];
-      html+='<div class="adm-cancha-hd">🏟 Cancha '+canchaAct+(spC?' · <span>'+spC+'</span>':'')+'<small>'+nCan+' partido'+(nCan===1?'':'s')+' por cargar</small></div><div class="adm-grid">';
-    }
+  html+='</div><div class="adm-canchas">';
+  for(var cc=1;cc<=7;cc++){
+    var np=pend(cc,window.admDia);
+    html+='<button class="'+(window.admCancha===String(cc)?'on':'')+(np?'':' vacia')+'" onclick="admElegir(\''+cc+'\',null)"><b>'+cc+'</b><small>'+(np?np+' pend.':'✓')+'</small></button>';
+  }
+  html+='</div></div>';
+  var listaC=noFin.filter(function(x){return String(x.cancha)===window.admCancha&&String(x.dia)===window.admDia;});
+  listaC.sort(function(a,b){return (a.hora||'')>(b.hora||'')?1:(a.hora||'')<(b.hora||'')?-1:0;});
+  var spC=sponsorCanchas[window.admCancha],nf=fin(window.admCancha,window.admDia);
+  html+='<div class="adm-cancha-hd">🏟 Cancha '+window.admCancha+(spC?' · <span>'+spC+'</span>':'')+'<small>'+(window.admDia==='1'?'Sábado 21':'Domingo 22')+' · '+listaC.length+' por cargar'+(nf?' · '+nf+' finalizado'+(nf===1?'':'s'):'')+'</small></div>';
+  if(!listaC.length){html+='<div style="color:var(--muted);font-size:14px;text-align:center;padding:30px;background:var(--card);border:1px dashed var(--border);border-radius:10px;">✓ No quedan partidos por cargar en esta cancha este día</div>';}
+  html+='<div class="adm-grid">';
+  var canchaAct='x';
+  listaC.forEach(function(p){var i=state.partidos.indexOf(p);
     var sl=p.score_local||0;var sv=p.score_visit||0;
     var tarjetas=p.tarjetas||[];
     var catColor=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
@@ -1466,8 +1490,15 @@ function renderAdminPartidos(){
     html+='</div>';
     html+='</div>';
   });
-  if(canchaAct!==null)html+='</div>';
+  html+='</div>';
   list.innerHTML=html;
+}
+function admElegir(c,d){
+  if(c)window.admCancha=String(c);
+  if(d)window.admDia=String(d);
+  try{localStorage.setItem('nave56_adm_sel',JSON.stringify({c:window.admCancha,d:window.admDia}));}catch(e){}
+  renderAdminPartidos();
+  var sel=document.querySelector('.adm-sel');if(sel)sel.scrollIntoView({block:'start',behavior:'smooth'});
 }
 function guardarResultado(i){
   if(!state.partidos[i])return;
