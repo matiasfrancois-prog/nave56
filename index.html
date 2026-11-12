@@ -256,7 +256,13 @@ body{background:var(--bg);color:var(--fg);font-family:'Inter',system-ui,sans-ser
 .admin-list-item-info{flex:1;min-width:0;}
 .admin-list-item-name{font-weight:600;font-size:14px;}
 .admin-list-item-sub{font-size:12px;color:var(--muted);}
-.admin-partido-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:6px;}
+.admin-partido-row{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:6px;min-width:0;}
+.adm-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:18px;}
+.adm-grid .admin-partido-row{margin-bottom:0;}
+.adm-cancha-hd{position:sticky;top:0;z-index:4;background:#1a2738;color:#fff;border-radius:10px;padding:10px 14px;margin:6px 0 10px;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;display:flex;align-items:baseline;gap:8px;}
+.adm-cancha-hd span{color:#c8a84b;}
+.adm-cancha-hd small{margin-left:auto;font-family:Inter,Arial,sans-serif;font-size:12px;letter-spacing:0;color:rgba(255,255,255,.7);}
+@media(max-width:560px){.adm-grid{grid-template-columns:1fr;}}
 /* CHAT */
 .chat-wrap{display:flex;flex-direction:column;gap:16px;max-width:680px;}
 .chat-msg-list{display:flex;flex-direction:column;gap:12px;}
@@ -457,6 +463,10 @@ button:focus{outline:none;}button:focus-visible{outline:2px solid var(--accent);
 .fx-row.fin{opacity:.7;}
 .fx-row.fav .l,.fx-row.fav .r{color:var(--accent);}
 .fx-copa{display:inline-block;font-size:10px;font-weight:800;color:#8c6d28;background:rgba(200,168,75,.18);border-radius:6px;padding:2px 6px;margin-top:3px;}
+.aviso-legal{background:rgba(200,168,75,.10);border:1px solid rgba(200,168,75,.45);border-left:4px solid #c8a84b;border-radius:10px;padding:12px 14px;margin:0 0 16px;font-size:12.5px;line-height:1.55;color:var(--fg);}
+.aviso-legal>b:first-child{display:block;font-size:13px;margin-bottom:4px;color:#8c6d28;}
+.aviso-legal i{display:block;margin-top:6px;font-size:11.5px;color:var(--muted);}
+.aviso-corto{font-size:11.5px;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:10px;padding:8px 12px;margin:0 0 14px;line-height:1.45;}
 .fx-vacio{text-align:center;padding:40px 20px;color:var(--muted);background:var(--surface);border:1px dashed var(--border);border-radius:14px;}
 @media(max-width:700px){
   .hero{flex-direction:column;align-items:stretch;padding:18px;gap:14px;}
@@ -1308,7 +1318,20 @@ function renderAdminPartidos(){
   var html='';
   var noFin=state.partidos.filter(function(p){return (p.estado||'').toLowerCase()!=='finalizado';});
   if(!noFin.length){list.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:24px;">✓ Todos los partidos finalizados</div>';return;}
+  noFin.sort(function(a,b){
+    var c=Number(a.cancha)-Number(b.cancha);if(c)return c;
+    if(String(a.dia)!==String(b.dia))return Number(a.dia)-Number(b.dia);
+    return (a.hora||'')>(b.hora||'')?1:(a.hora||'')<(b.hora||'')?-1:0;
+  });
+  var canchaAct=null;
   noFin.forEach(function(p){var i=state.partidos.indexOf(p);
+    if(String(p.cancha)!==canchaAct){
+      if(canchaAct!==null)html+='</div>';
+      canchaAct=String(p.cancha);
+      var nCan=noFin.filter(function(x){return String(x.cancha)===canchaAct;}).length;
+      var spC=sponsorCanchas[canchaAct];
+      html+='<div class="adm-cancha-hd">🏟 Cancha '+canchaAct+(spC?' · <span>'+spC+'</span>':'')+'<small>'+nCan+' partido'+(nCan===1?'':'s')+' por cargar</small></div><div class="adm-grid">';
+    }
     var sl=p.score_local||0;var sv=p.score_visit||0;
     var tarjetas=p.tarjetas||[];
     var catColor=p.cat==='A'?'#b8963e':p.cat==='B'?'#4b8ef0':'#9b6fd4';
@@ -1319,7 +1342,7 @@ function renderAdminPartidos(){
     html+='<div style="font-weight:700;font-size:14px;">'+p.local+' vs '+p.visitante+'<span style="margin-left:8px;font-size:11px;background:'+catColor+';color:#fff;border-radius:4px;padding:2px 6px;">'+INSTANCIAS[instDe(p)]+'</span>'+"</div>";
     html+='<div style="display:flex;gap:6px;"><button onclick="imprimirPlanilla('+i+')" title="Planilla árbitro" style="background:#1e4a8c;color:#fff;border:none;border-radius:6px;padding:4px 9px;font-size:13px;cursor:pointer;">🖨</button><button class="btn-danger" onclick="delPartido('+i+')">✕</button></div></div>';
     // Info horario
-    html+='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">🕐 Día '+p.dia+' · '+p.hora+'  |  🏟 Cancha '+p.cancha+'</div>';
+    html+='<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:8px;">🕐 '+(String(p.dia)==='1'?'Sáb 21':'Dom 22')+' · '+p.hora+'  |  🏟 Cancha '+p.cancha+'</div>';
 
     // Estado select
     var estadoOpts=['proximo','live','finalizado'].map(function(e){
@@ -1443,6 +1466,7 @@ function renderAdminPartidos(){
     html+='</div>';
     html+='</div>';
   });
+  if(canchaAct!==null)html+='</div>';
   list.innerHTML=html;
 }
 function guardarResultado(i){
@@ -2553,6 +2577,7 @@ addEventListener('DOMContentLoaded',function(){
       <button class="chip c-b" onclick="setFxTipo('catB',this)"><i style="background:#4b8ef0"></i>R · Recreativo</button>
     </div>
   </div>
+  <div class="aviso-corto">ⓘ Información no oficial, sujeta a errores de carga. Los resultados definitivos están a disposición en la Mesa de Control.</div>
   <div class="partidos-list" id="partidos-list">
     <div class="empty-state"><div class="empty-icon">🏉</div><p>No hay partidos cargados aún</p></div>
   </div>
@@ -2560,6 +2585,7 @@ addEventListener('DOMContentLoaded',function(){
 
 <div class="tab-panel" id="tab-historial">
   <div class="section-title">✅ Resultados</div>
+  <div class="aviso-legal"><b>⚖ Aviso importante</b>La información publicada en esta aplicación (resultados, posiciones, fixture y horarios) tiene carácter <b>meramente informativo y no oficial</b>. Puede contener errores u omisiones de carga y estar sujeta a modificaciones sin previo aviso. <b>Los únicos resultados válidos y definitivos del NAVE56 son los registrados en las planillas oficiales de partido</b>, que se encuentran a disposición de los delegados de cada agrupación en la <b>Mesa de Control</b>. Ante cualquier diferencia entre esta aplicación y dichas planillas, prevalecerá lo registrado en la Mesa de Control. La organización no se responsabiliza por decisiones tomadas sobre la base de la información de esta aplicación.<i>— Comisión Organizadora NAVE56</i></div>
   <div id="historial-list"><div class="empty-state"><div class="empty-icon">📋</div><p>Sin partidos finalizados aún</p></div></div>
 </div>
 
@@ -2570,6 +2596,7 @@ addEventListener('DOMContentLoaded',function(){
     <button onclick="setCanchaDia('2',this)">Domingo 22</button>
   </div>
   <div class="canchas-grid" id="canchas-grid"></div>
+  <div class="aviso-corto">ⓘ Información no oficial, sujeta a errores de carga. Los resultados definitivos están a disposición en la Mesa de Control.</div>
 </div>
 
 
